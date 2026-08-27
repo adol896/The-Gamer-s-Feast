@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冒険の時間割 - ゼルダ×黒板ハイブリッド</title>
+    <!-- 画像出力用の外部ライブラリ (html2canvas) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #1a1612;
+            --panel-bg: #2d241b;
+            --panel-border: #8c7355;
+            --gold: #d4af37;
+            --gold-light: #f3e5ab;
+            --text-main: #f0e6d2;
+            --text-sub: #b3a48f;
+            
+            --blackboard-bg: #1e3328;
+            --blackboard-border: #5a3a22;
+            --chalk-white: #ffffff;
+            --chalk-yellow: #f1c40f;
+            --neon-green: #39ff14;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Georgia', 'Times New Roman', 'YuMincho', serif;
+            margin: 0;
+            padding: 20px;
+            background-image: radial-gradient(circle, #382c21 0%, #1a1612 100%);
+            min-height: 100vh;
+        }
+
+        .zelda-container {
+            max-width: 680px;
+            margin: 0 auto;
+            background: var(--panel-bg);
+            border: 4px solid var(--panel-border);
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,0,0,0.6);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--gold);
+            font-size: 1.6rem;
+            letter-spacing: 2px;
+            margin-top: 0;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .action-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .game-input {
+            flex: 1;
+            background: rgba(20, 15, 10, 0.8);
+            border: 1.5px solid var(--panel-border);
+            border-radius: 6px;
+            color: var(--gold-light);
+            padding: 9px 12px;
+            font-family: 'Georgia', serif;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .game-input:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+        }
+
+        .game-input::placeholder {
+            color: var(--text-sub);
+            opacity: 0.6;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: linear-gradient(to bottom, #5c4731, #382c21);
+            color: var(--gold-light);
+            border: 2px solid var(--gold);
+            padding: 10px;
+            font-family: 'Georgia', serif;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+            transition: 0.2s;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: linear-gradient(to bottom, #735a3e, #4a3b2c);
+            color: #fff;
+            border-color: #fff;
+        }
+
+        button.add-btn {
+            background: linear-gradient(to bottom, #4a5c3b, #28351f);
+            border-color: #7db86b;
+            color: #d2f3bf;
+            padding: 9px 15px;
+        }
+
+        button.mic-btn { background: linear-gradient(to bottom, #3b505c, #1f2c35); border-color: #6ba4b8; color: #bfe3f3; }
+        button.mic-btn.listening { 
+            background: linear-gradient(to bottom, #5c3b3b, #351f1f); 
+            border-color: #ff3b3b; 
+            color: #ffcccc;
+            animation: pulse-glow 1.5s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px rgba(255, 59, 59, 0.4); }
+            50% { box-shadow: 0 0 15px rgba(255, 59, 59, 0.8); }
+            100% { box-shadow: 0 0 5px rgba(255, 59, 59, 0.4); }
+        }
+
+        button.nfc-read-btn { background: linear-gradient(to bottom, #3b5c42, #1f3524); border-color: #6bb87d; color: #bfe3cf; }
+        button.nfc-write-btn { background: linear-gradient(to bottom, #5c523b, #352e1f); border-color: #b8a46b; color: #f3e3bf; }
+        button.auto-btn { background: linear-gradient(to bottom, #3b3b5c, #1f1f35); border-color: #6b6bb8; color: #bfcbf3; grid-column: span 2; }
+        button.export-btn { background: linear-gradient(to bottom, #5c413b, #35221f); border-color: #b8716b; color: #f3c2bf; grid-column: span 2; }
+
+        .section-title {
+            color: var(--gold);
+            font-size: 0.95rem;
+            margin: 15px 0 8px 0;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lineup-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
+
+        .zelda-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 24, 18, 0.8);
+            border-left: 4px solid var(--gold);
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .zelda-row:hover { background: rgba(50, 40, 30, 0.9); }
+        .zelda-row.completed { opacity: 0.7; border-left-color: var(--neon-green); }
+
+        .blackboard-area {
+            background: var(--blackboard-bg);
+            border: 6px solid var(--blackboard-border);
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            transition: all 0.1s;
+        }
+
+        .blackboard-area.export-clean {
+            border-color: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .blackboard-area.export-clean .chalk-row {
+            background: transparent !important;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .blackboard-area.export-clean .chalk-select {
+            background: transparent !important;
+            border: none !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            color: var(--chalk-white) !important;
+            font-weight: bold;
+            padding: 0 !important;
+        }
+
+        .blackboard-area.export-clean .time-badge {
+            border: none !important;
+            box-shadow: none !important;
+            text-shadow: none !important;
+        }
+
+        .blackboard-header {
+            color: var(--chalk-white);
+            font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            border-bottom: 2px dashed rgba(255, 255, 255, 0.4);
+            padding-bottom: 5px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .schedule-list { list-style: none; padding: 0; margin: 0; }
+
+        .chalk-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            font-family: sans-serif;
+        }
+
+        .time-badge {
+            background-color: transparent;
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 3px 6px;
+            border-radius: 3px;
+            box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+            white-space: nowrap;
+            text-shadow: 0 0 2px var(--neon-green);
+            min-width: 130px;
+            text-align: center;
+        }
+
+        .chalk-controls {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        .chalk-select {
+            background: #12221b;
+            color: var(--chalk-white);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-family: sans-serif;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .chalk-select.game-select {
+            flex: 1;
+            max-width: 260px;
+        }
+
+        .empty-text {
+            color: var(--chalk-white);
+            font-style: italic;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 10px;
+            opacity: 0.8;
+        }
+
+        #statusLog {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--gold-light);
+            background: rgba(0,0,0,0.3);
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        /* --- スタンプ・ボトムパネル --- */
+        .bottom-panel {
+            margin-top: 25px;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .stamp-card-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 15px 0;
+            background: rgba(20, 15, 10, 0.6);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px dashed var(--gold);
+        }
+
+        .stamp-slot {
+            width: 42px;
+            height: 42px;
+            border: 2px dashed var(--panel-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            background: rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .stamp-slot.active {
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+            background: rgba(50, 40, 20, 0.5);
+        }
+
+        .stamp-slot.bonus-slot {
+            border-color: #ff3b3b;
+            box-shadow: 0 0 10px rgba(255, 59, 59, 0.4);
+        }
+
+        .history-log-frame {
+            height: 120px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: rgba(10, 8, 5, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+            padding: 8px;
+            margin: 8px 0;
+        }
+
+        .history-log-frame::-webkit-scrollbar {
+            width: 8px;
+        }
+        .history-log-frame::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+        .history-log-frame::-webkit-scrollbar-thumb {
+            background: var(--panel-border);
+            border-radius: 4px;
+        }
+
+        .history-log-list {
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 8px;
+            border-bottom: 1px dotted rgba(255,255,255,0.1);
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        /* モーダル群 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--panel-bg);
+            border: 4px solid var(--gold);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 440px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.open .modal-card {
+            transform: scale(1);
+        }
+
+        .cert-header {
+            border-bottom: 2px solid var(--gold);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .cert-rank {
+            font-size: 1.4rem;
+            color: #fff;
+            text-shadow: 0 0 10px var(--gold);
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .cert-stats-box {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .stamp-count-grid {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .stamp-count-item {
+            text-align: center;
+        }
+        .stamp-count-item .icon { font-size: 1.5rem; }
+        .stamp-count-item .num { font-size: 1rem; color: var(--gold-light); font-weight: bold; }
+        
+        .game-hours-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 120px;
+            overflow-y: auto;
+            border-top: 1px dashed rgba(255,255,255,0.2);
+            padding-top: 10px;
+        }
+        .game-hours-list li {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            padding: 4px 0;
+            color: var(--text-main);
+        }
+
+        .stamp-picker {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stamp-option-btn {
+            font-size: 2.2rem;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            background: rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stamp-option-btn:hover {
+            transform: scale(1.15) rotate(5deg);
+            background: rgba(212, 175, 55, 0.3);
+            border-color: #fff;
+        }
+
+        .btn-info { background: linear-gradient(to bottom, #3b4d5c, #1f2835); border-color: #6ba4b8; color: #bfe3f3; }
+        .btn-cert { background: linear-gradient(to bottom, #5c3b5c, #351f35); border-color: #b86bb8; color: #f3bff3; margin-bottom: 10px;}
+        .full-width { width: 100%; }
+
+        .info-content {
+            text-align: left;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text-main);
+            padding-right: 5px;
+        }
+        .info-content h3 { color: var(--gold); border-bottom: 1px solid var(--panel-border); padding-bottom: 4px; margin-top: 15px; }
+        .notice-box { background: rgba(255, 59, 59, 0.15); border: 1px solid #ff3b3b; border-radius: 6px; padding: 10px; margin-top: 10px; color: #ffcccc; }
+    </style>
+</head>
+<body>
+
+    <div class="zelda-container">
+        <h1>⚔️ 冒険の献立表 ⚔️</h1>
+        <div class="subtitle">〜 インベントリ＆作戦黒板 〜</div>
+
+        <div class="action-panel">
+            <div class="input-row">
+                <input type="text" id="gameInput" class="game-input" placeholder="タイトルを入力..." onkeydown="if(event.key==='Enter') addGameFromInput()">
+                <button class="add-btn" onclick="addGameFromInput()">＋ 追加</button>
+                <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()">🎤 音声入力</button>
+            </div>
+            <div class="btn-grid">
+                <button class="auto-btn" onclick="autoBuildSchedule()">⚡ 自動で時間割を組み上げる</button>
+                <button class="nfc-read-btn" onclick="readFromNfc()">📡 NFC読み込み</button>
+                <button class="nfc-write-btn" onclick="writeToNfcManually()">🔗 URL＋データ書き込み</button>
+                <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
+            </div>
+            <div id="statusLog">「URL書き込み」を押してかざすと、起動URLとデータが同時にセットされます</div>
+        </div>
+
+        <div class="section-title">
+            <span>📦 所持ゲーム一覧 (タップで完了切り替え)</span>
+        </div>
+        <ul class="lineup-list" id="lineupList">
+            <div class="empty-text">（ゲームがありません）</div>
+        </ul>
+
+        <div class="blackboard-area" id="blackboardArea">
+            <div class="blackboard-header">🏫 本日の作戦時間割</div>
+            <ul class="schedule-list" id="scheduleList">
+                <div class="empty-text">（ゲームを追加すると時間割が展開されます）</div>
+            </ul>
+        </div>
+
+        <div class="bottom-panel">
+            <div class="section-title" style="margin-top:0;">
+                <span>📜 冒険のログインボーナス (7日累計)</span>
+                <button style="padding: 3px 8px; font-size: 0.75rem;" onclick="openStampModal()">🎁 今日のスタンプ</button>
+            </div>
+            
+            <div class="stamp-card-container" id="stampCardContainer">
+                <div class="stamp-slot" id="slot-0">1</div>
+                <div class="stamp-slot" id="slot-1">2</div>
+                <div class="stamp-slot" id="slot-2">3</div>
+                <div class="stamp-slot" id="slot-3">4</div>
+                <div class="stamp-slot" id="slot-4">5</div>
+                <div class="stamp-slot" id="slot-5">6</div>
+                <div class="stamp-slot bonus-slot" id="slot-6" title="7日累計特典">🪎</div>
+            </div>
+
+            <button class="btn-cert full-width" onclick="openCertificateModal()">📜 冒険の証（プレイヤーカード）を開く</button>
+            <button class="btn-info full-width" onclick="openInfoModal()" style="margin-top: 10px;">ℹ️ アプリの使い方・NFCカードについて</button>
+        </div>
+    </div>
+
+    <!-- モーダル：冒険の証（プレイヤーカード） -->
+    <div class="modal-overlay" id="certificateModal">
+        <div class="modal-card">
+            <div class="cert-header">
+                <h2 style="color: var(--gold); margin:0;">✨ 冒険の証 ✨</h2>
+                <div style="font-size:0.8rem; color:var(--text-sub);">Player Certificate</div>
+            </div>
+            
+            <div style="font-size:0.85rem; color:var(--gold-light);">現在の冒険者ランク</div>
+            <div class="cert-rank" id="certRankDisplay">🟤 ブロンズの旅人</div>
+
+            <div class="cert-stats-box">
+                <div style="font-size: 0.8rem; color: var(--gold); margin-bottom: 8px; text-align: center;">🏆 獲得スタンプ累計</div>
+                <div class="stamp-count-grid">
+                    <div class="stamp-count-item"><div class="icon">🎃</div><div class="num" id="count-pumpkin">0</div></div>
+                    <div class="stamp-count-item"><div class="icon">⚔️</div><div class="num" id="count-sword">0</div></div>
+                    <div class="stamp-count-item"><div class="icon">🛡️</div><div class="num" id="count-shield">0</div></div>
+                    <div class="stamp-count-item"><div class="icon">🪎</div><div class="num" id="count-scythe">0</div></div>
+                </div>
+
+                <div style="font-size: 0.8rem; color: var(--gold); margin-bottom: 5px;">⏳ ゲーム別 累計プレイ時間</div>
+                <ul class="game-hours-list" id="certGameList"></ul>
+                
+                <div style="font-size: 0.8rem; color: var(--gold); margin-top: 20px; margin-bottom: 5px;">📅 日付ログ (スワイプでスクロール)</div>
+                <div class="history-log-frame">
+                    <ul class="history-log-list" id="historyLogList">
+                        <div class="empty-text" style="padding: 2px;">（記録がありません）</div>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="closeCertificateModal()" style="width: 100%;">閉じる</button>
+        </div>
+    </div>
+
+    <!-- モーダル：ログインスタンプ選択 -->
+    <div class="modal-overlay" id="stampModal">
+        <div class="modal-card">
+            <h2 style="color: var(--gold); margin-top:0;">🎁 本日のログインボーナス</h2>
+            <p style="font-size:0.85rem; color:var(--text-sub);">目標達成やお疲れ様の印として、本日のスタンプを1つ選んで押してください！</p>
+            
+            <div class="stamp-picker">
+                <button class="stamp-option-btn" onclick="selectStamp('🎃')">🎃</button>
+                <button class="stamp-option-btn" onclick="selectStamp('⚔️')">⚔️</button>
+                <button class="stamp-option-btn" onclick="selectStamp('🛡️')">🛡️</button>
+            </div>
+            <button onclick="closeStampModal()" style="background: transparent; border: 1px solid var(--text-sub); color: var(--text-sub); font-size: 0.8rem;">閉じる</button>
+        </div>
+    </div>
+
+    <!-- モーダル：アプリの説明 -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-card" style="max-width: 500px;">
+            <h2 style="color: var(--gold); margin-top:0;">📖 冒険の時間割の使い方</h2>
+            <div class="info-content">
+                <h3>1. ゲームと時間割の管理</h3>
+                <p>ゲームを追加し、「自動で時間割を組み上げる」を押すと作戦予定表が黒板にセットされます。</p>
+
+                <h3>2. プレイ時間の記録</h3>
+                <p>所持ゲーム一覧の項目をタップして「完了」にすると、黒板に割り当てられていた合計時間がそのゲームの累計プレイ時間として加算されます。</p>
+
+                <h3>3. NFCカードでの連携機能</h3>
+                <p>「URL＋データ書き込み」を押してNFCカードにかざすと、次回から<b>スマホでカードにタッチするだけでこの画面が開き、データを自動読み込み</b>できます。</p>
+                <div class="notice-box">
+                    <strong>⚠️ NFCカードご使用上の注意</strong><br>
+                    本機能をご利用いただくには、<b>新規購入の「NTAG215」などのWeb NFC対応NFCカード/タグ</b>が別途必要です。
+                </div>
+            </div>
+            <button onclick="closeInfoModal()" style="margin-top: 15px; width: 100%;">理解しました</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Web Audio API 効果音システム ---
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+
+            switch (type) {
+                case 'click':
+                    // 基本のボタン（カチッ）
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, now);
+                    gainNode.gain.setValueAtTime(1, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                    break;
+
+                case 'switch':
+                    // 時間割・選択肢の切り替え（ポンッ）
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+                    gainNode.gain.setValueAtTime(0.8, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                    break;
+
+                case 'success':
+                    playSuccessArpeggio(now);
+                    break;
+
+                case 'error':
+                    // エラー・失敗（ブブッ）
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    gainNode.gain.setValueAtTime(0, now);
+                    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                    gainNode.gain.setValueAtTime(0.3, now + 0.2);
+                    gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                    break;
+            }
+        }
+
+        function playSuccessArpeggio(startTime) {
+            const notes = [
+                { freq: 523.25, delay: 0, duration: 0.2 },
+                { freq: 659.25, delay: 0.08, duration: 0.2 },
+                { freq: 783.99, delay: 0.16, duration: 0.4 }
+            ];
+
+            notes.forEach(note => {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(note.freq, startTime + note.delay);
+                
+                gainNode.gain.setValueAtTime(0, startTime + note.delay);
+                gainNode.gain.linearRampToValueAtTime(0.3, startTime + note.delay + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + note.delay + note.duration);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start(startTime + note.delay);
+                osc.stop(startTime + note.delay + note.duration);
+            });
+        }
+
+
+        // --- アプリ本体のロジック ---
+        const defaultFrames = [
+            { duration: 1.5, defaultType: "game" },
+            { duration: 0.25, defaultType: "break" },
+            { duration: 1.5, defaultType: "game" },
+            { duration: 1.0, defaultType: "lunch" },
+            { duration: 2.0, defaultType: "game" },
+            { duration: 0.5, defaultType: "break" },
+            { duration: 1.5, defaultType: "game" },
+            { duration: 1.5, defaultType: "game" },
+            { duration: 2.0, defaultType: "game" }
+        ];
+
+        const durationOptions = [
+            { label: "5分", value: 5 / 60 }, { label: "10分", value: 10 / 60 },
+            { label: "15分", value: 15 / 60 }, { label: "20分", value: 20 / 60 },
+            { label: "30分", value: 30 / 60 }, { label: "1時間", value: 1.0 },
+            { label: "1.5時間", value: 1.5 }, { label: "2時間", value: 2.0 },
+            { label: "2.5時間", value: 2.5 }, { label: "3時間", value: 3.0 }, { label: "4時間", value: 4.0 }
+        ];
+
+        let scheduleAssignments = [];
+        let gameDataList = [];
+        let loginHistory = []; 
+
+        const BASE_START_HOUR = 9;
+        const BASE_START_MIN = 0;
+
+        initDefaultSchedule();
+        loadLocalBackup();
+        updateDisplay();
+
+        function getTodayStr() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        }
+
+        function initDefaultSchedule() {
+            let gameCounter = 0;
+            scheduleAssignments = defaultFrames.map((f) => {
+                let assignedVal = "-1";
+                if (f.defaultType === "lunch") assignedVal = "-2";
+                else if (f.defaultType === "game") {
+                    if (gameDataList.length > 0) {
+                        assignedVal = String(gameCounter % gameDataList.length);
+                        gameCounter++;
+                    } else assignedVal = "0";
+                }
+                return { gameIndexVal: assignedVal, duration: f.duration };
+            });
+        }
+
+        function addGameFromInput() {
+            const inputEl = document.getElementById('gameInput');
+            const title = inputEl.value.trim();
+            if (!title) { 
+                playSound('error');
+                document.getElementById('statusLog').textContent = "⚠️ ゲームタイトルを入力してください"; 
+                return; 
+            }
+            playSound('success');
+            addGameToList(title);
+            inputEl.value = '';
+        }
+
+        function addGameToList(title) {
+            gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
+            initDefaultSchedule();
+            updateDisplay();
+            syncToNfc();
+            document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！`;
+        }
+
+        let recognition = null;
+        let isListening = false;
+        function toggleVoiceInput() {
+            playSound('click');
+            const statusEl = document.getElementById('statusLog');
+            const micBtn = document.getElementById('micBtn');
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { 
+                playSound('error');
+                statusEl.textContent = "⚠️ 音声非対応ブラウザです"; 
+                return; 
+            }
+            if (isListening && recognition) { recognition.stop(); return; }
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ja-JP';
+            recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); micBtn.textContent = "🛑 認識停止"; statusEl.textContent = "🎙️ 聴き取り中..."; };
+            recognition.onresult = (e) => {
+                playSound('success');
+                addGameToList(e.results[0][0].transcript);
+            };
+            recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); micBtn.textContent = "🎤 音声入力"; };
+            recognition.start();
+        }
+
+        function autoBuildSchedule() {
+            playSound('switch');
+            initDefaultSchedule(); updateDisplay(); syncToNfc();
+            document.getElementById('statusLog').textContent = "⚡ 時間割を自動で組み上げました！";
+        }
+
+        function changeScheduleGame(frameIndex, selectedValue) {
+            playSound('switch');
+            scheduleAssignments[frameIndex].gameIndexVal = selectedValue; updateDisplay(); syncToNfc();
+        }
+
+        function changeScheduleDuration(frameIndex, newDuration) {
+            playSound('switch');
+            scheduleAssignments[frameIndex].duration = parseFloat(newDuration); updateDisplay(); syncToNfc();
+        }
+
+        function toggleComplete(gameIndex) {
+            playSound('success');
+            let g = gameDataList[gameIndex];
+            g.completed = !g.completed;
+            
+            if(g.completed) {
+                let assignedMins = 0;
+                scheduleAssignments.forEach(a => {
+                    if(a.gameIndexVal === String(gameIndex)) {
+                        assignedMins += Math.round(a.duration * 60);
+                    }
+                });
+                
+                g.totalMinutes = (g.totalMinutes || 0) + assignedMins;
+                g.playCount = (g.playCount || 0) + 1;
+                document.getElementById('statusLog').textContent = `⚔️ 「${g.title}」の目標達成！（+${assignedMins}分記録）`;
+            } else {
+                document.getElementById('statusLog').textContent = `🔄 「${g.title}」を未完了に戻しました`;
+            }
+            
+            updateDisplay();
+            syncToNfc();
+        }
+
+        function exportBlackboardImage() {
+            playSound('click');
+            const blackboard = document.getElementById('blackboardArea');
+            const statusEl = document.getElementById('statusLog');
+            statusEl.textContent = "🖼️ 画像を生成中...";
+            blackboard.classList.add('export-clean');
+            html2canvas(blackboard, { backgroundColor: '#1e3328', scale: 2 }).then(canvas => {
+                playSound('success');
+                const link = document.createElement('a');
+                link.download = `冒険の時間割_${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                statusEl.textContent = "🖼️ 黒板画像を保存しました！";
+            }).finally(() => blackboard.classList.remove('export-clean'));
+        }
+
+        async function readFromNfc() {
+            playSound('click');
+            const statusEl = document.getElementById('statusLog');
+            if (!('NDEFReader' in window)) { 
+                playSound('error');
+                statusEl.textContent = "⚠️ Web NFC非対応端末です"; 
+                return; 
+            }
+            try {
+                const ndef = new NDEFReader();
+                await ndef.scan();
+                statusEl.textContent = "📡 NFCカードをタッチしてください...";
+                ndef.onreading = event => {
+                    playSound('success');
+                    const decoder = new TextDecoder();
+                    for (const record of event.message.records) {
+                        if (record.recordType === "text") {
+                            const data = JSON.parse(decoder.decode(record.data));
+                            gameDataList = data.games || data;
+                            if (data.assignments) scheduleAssignments = data.assignments;
+                            if (data.history) loginHistory = data.history;
+                            updateDisplay();
+                            statusEl.textContent = "✨ NFCからデータをロードしました！";
+                            checkTodayStamp();
+                        }
+                    }
+                };
+            } catch (e) { 
+                playSound('error');
+                statusEl.textContent = "❌ NFC読み込みエラー: " + e; 
+            }
+        }
+
+        async function syncToNfc() {
+            saveLocalBackup();
+            if (!('NDEFReader' in window)) return;
+            try {
+                const ndef = new NDEFReader();
+                const payload = { games: gameDataList, assignments: scheduleAssignments, history: loginHistory };
+                await ndef.write({ records: [{ recordType: "url", data: window.location.href }, { recordType: "text", data: JSON.stringify(payload) }]});
+            } catch (e) {}
+        }
+
+        async function writeToNfcManually() {
+            playSound('click');
+            const statusEl = document.getElementById('statusLog');
+            if (!('NDEFReader' in window)) { 
+                playSound('error');
+                statusEl.textContent = "⚠️ Web NFC非対応環境です"; 
+                return; 
+            }
+            try {
+                const ndef = new NDEFReader();
+                statusEl.textContent = "✍️ NFCカードにタッチしてください...";
+                const payload = { games: gameDataList, assignments: scheduleAssignments, history: loginHistory };
+                await ndef.write({ records: [{ recordType: "url", data: window.location.href }, { recordType: "text", data: JSON.stringify(payload) }]});
+                playSound('success');
+                statusEl.textContent = "🎉 書き込み成功！次回からかざすだけで開きます";
+            } catch (e) { 
+                playSound('error');
+                statusEl.textContent = "❌ 書き込み失敗: " + e; 
+            }
+        }
+
+        function removeGame(index, event) {
+            playSound('switch');
+            event.stopPropagation(); gameDataList.splice(index, 1);
+            initDefaultSchedule(); updateDisplay(); syncToNfc();
+        }
+
+        function openStampModal() { playSound('click'); document.getElementById('stampModal').classList.add('open'); }
+        function closeStampModal() { playSound('click'); document.getElementById('stampModal').classList.remove('open'); }
+        function openInfoModal() { playSound('click'); document.getElementById('infoModal').classList.add('open'); }
+        function closeInfoModal() { playSound('click'); document.getElementById('infoModal').classList.remove('open'); }
+
+        function openCertificateModal() {
+            playSound('click');
+            const modal = document.getElementById('certificateModal');
+            
+            const totalDays = loginHistory.length;
+            let titleStr = "🟤 ブロンズの旅人";
+            if(totalDays >= 50) titleStr = "🌟 プラチナの英雄";
+            else if(totalDays >= 30) titleStr = "💎 ダイヤモンドの勇者";
+            else if(totalDays >= 14) titleStr = "🔴 ルビーの戦士";
+            else if(totalDays >= 7) titleStr = "🟡 ゴールドの冒険者";
+            else if(totalDays >= 3) titleStr = "⚪ シルバーの剣士";
+            document.getElementById('certRankDisplay').textContent = titleStr;
+
+            let counts = { '🎃': 0, '⚔️': 0, '🛡️': 0 };
+            loginHistory.forEach(h => { if(counts[h.stamp] !== undefined) counts[h.stamp]++; });
+            
+            document.getElementById('count-pumpkin').textContent = counts['🎃'];
+            document.getElementById('count-sword').textContent = counts['⚔️'];
+            document.getElementById('count-shield').textContent = counts['🛡️'];
+            document.getElementById('count-scythe').textContent = Math.floor(totalDays / 7);
+
+            const gameListEl = document.getElementById('certGameList');
+            gameListEl.innerHTML = '';
+            if(gameDataList.length === 0) {
+                gameListEl.innerHTML = '<li style="justify-content:center; color:var(--text-sub);">記録がありません</li>';
+            } else {
+                gameDataList.forEach(g => {
+                    const totalMins = g.totalMinutes || 0;
+                    const hours = Math.floor(totalMins / 60);
+                    const mins = totalMins % 60;
+                    let timeStr = "";
+                    if (hours > 0) timeStr += `${hours}時間`;
+                    if (mins > 0 || hours === 0) timeStr += `${mins}分`;
+
+                    gameListEl.innerHTML += `
+                        <li>
+                            <span style="font-weight:bold; color:var(--gold-light);">${g.title}</span>
+                            <span>${timeStr}</span>
+                        </li>
+                    `;
+                });
+            }
+
+            modal.classList.add('open');
+        }
+        function closeCertificateModal() { playSound('click'); document.getElementById('certificateModal').classList.remove('open'); }
+
+        function checkTodayStamp() {
+            const today = getTodayStr();
+            if (!loginHistory.some(item => item.date === today)) {
+                setTimeout(() => openStampModal(), 500);
+            }
+        }
+
+        function selectStamp(stampSymbol) {
+            playSound('success');
+            const today = getTodayStr();
+            const existingIndex = loginHistory.findIndex(item => item.date === today);
+            if (existingIndex >= 0) loginHistory[existingIndex].stamp = stampSymbol;
+            else loginHistory.push({ date: today, stamp: stampSymbol });
+            
+            closeStampModal(); updateDisplay(); syncToNfc();
+            document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！`;
+        }
+
+        function saveLocalBackup() {
+            localStorage.setItem('zelda_game_data', JSON.stringify({ games: gameDataList, assignments: scheduleAssignments, history: loginHistory }));
+        }
+
+        function loadLocalBackup() {
+            const raw = localStorage.getItem('zelda_game_data');
+            if (raw) {
+                try {
+                    const data = JSON.parse(raw);
+                    if (data.games) gameDataList = data.games;
+                    if (data.assignments) scheduleAssignments = data.assignments;
+                    if (data.history) loginHistory = data.history;
+                } catch(e){}
+            }
+        }
+
+        function updateDisplay() {
+            const listEl = document.getElementById('lineupList');
+            listEl.innerHTML = '';
+            if (gameDataList.length === 0) {
+                listEl.innerHTML = '<div class="empty-text">（ゲームが登録されていません）</div>';
+            } else {
+                gameDataList.forEach((g, idx) => {
+                    const totalMins = g.totalMinutes || 0;
+                    let timeBadge = totalMins > 0 ? ` (累計${Math.floor(totalMins/60)}h${totalMins%60}m)` : '';
+                    
+                    const completedClass = g.completed ? 'completed' : '';
+                    const li = document.createElement('li');
+                    li.className = `zelda-row ${completedClass}`;
+                    li.onclick = () => toggleComplete(idx);
+                    li.innerHTML = `
+                        <div>
+                            <div class="zelda-title-text" style="font-weight:bold; color:var(--gold-light);">${g.title}</div>
+                            <div style="font-size:0.75rem; color:var(--text-sub);">
+                                状態: ${g.completed ? '【クリア/達成】' : '進行中'} ${timeBadge}
+                            </div>
+                        </div>
+                        <span style="color:#b86b6b; cursor:pointer; font-size:0.8rem; padding:5px;" onclick="removeGame(${idx}, event)">[削除]</span>
+                    `;
+                    listEl.appendChild(li);
+                });
+            }
+
+            const schedEl = document.getElementById('scheduleList');
+            schedEl.innerHTML = '';
+            let currentTotalMinutes = BASE_START_HOUR * 60 + BASE_START_MIN;
+
+            scheduleAssignments.forEach((item, fIdx) => {
+                const startMins = currentTotalMinutes;
+                const durationMins = Math.round(item.duration * 60);
+                const endMins = startMins + durationMins;
+                currentTotalMinutes = endMins;
+
+                const pad = (n) => String(n).padStart(2, '0');
+                const timeStr = `${pad(Math.floor(startMins/60)%24)}:${pad(startMins%60)} - ${pad(Math.floor(endMins/60)%24)}:${pad(endMins%60)}`;
+
+                let gameOptsHtml = `<option value="-2" ${item.gameIndexVal === "-2" ? 'selected' : ''}>🍱 昼食・食事</option><option value="-1" ${item.gameIndexVal === "-1" ? 'selected' : ''}>🍵 休憩・自由時間</option>`;
+                gameDataList.forEach((g, gIdx) => {
+                    gameOptsHtml += `<option value="${gIdx}" ${(String(gIdx) === item.gameIndexVal) ? 'selected' : ''}>🎮 ${g.title}</option>`;
+                });
+
+                let durOptsHtml = '';
+                durationOptions.forEach((opt) => {
+                    durOptsHtml += `<option value="${opt.value}" ${Math.abs(opt.value - item.duration) < 0.001 ? 'selected' : ''}>${opt.label}</option>`;
+                });
+
+                const li = document.createElement('li');
+                li.className = 'chalk-row';
+                li.innerHTML = `
+                    <span class="time-badge">${timeStr}</span>
+                    <div class="chalk-controls">
+                        <select class="chalk-select game-select" onchange="changeScheduleGame(${fIdx}, this.value)">${gameOptsHtml}</select>
+                        <select class="chalk-select" onchange="changeScheduleDuration(${fIdx}, this.value)">${durOptsHtml}</select>
+                    </div>
+                `;
+                schedEl.appendChild(li);
+            });
+
+            const totalCount = loginHistory.length;
+            for (let i = 0; i < 6; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                if (i < totalCount % 7 || (totalCount > 0 && totalCount % 7 === 0)) {
+                    const stampIndex = totalCount - 1 - ((totalCount - 1) % 7) + i;
+                    if(loginHistory[stampIndex]) {
+                        slot.classList.add('active');
+                        slot.textContent = loginHistory[stampIndex].stamp;
+                    }
+                } else {
+                    slot.classList.remove('active');
+                    slot.textContent = i + 1;
+                }
+            }
+
+            const bonusSlot = document.getElementById('slot-6');
+            if (totalCount > 0 && totalCount % 7 === 0) { bonusSlot.classList.add('active'); bonusSlot.textContent = '🪎'; } 
+            else { bonusSlot.classList.remove('active'); bonusSlot.textContent = '🪎'; }
+
+            const historyListEl = document.getElementById('historyLogList');
+            historyListEl.innerHTML = '';
+            if (loginHistory.length === 0) {
+                historyListEl.innerHTML = '<div class="empty-text" style="padding: 2px;">（記録がありません）</div>';
+            } else {
+                [...loginHistory].reverse().forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'history-item';
+                    li.innerHTML = `<span>📅 ${item.date}</span><span style="color:var(--gold-light);">獲得: ${item.stamp}</span>`;
+                    historyListEl.appendChild(li);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
