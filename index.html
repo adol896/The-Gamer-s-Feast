@@ -6,7 +6,6 @@
     <title>冒険の時間割 - ゼルダ×黒板ハイブリッド</title>
     <!-- 画像出力用の外部ライブラリ (html2canvas) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
       :root {
           --bg-color: #1a1612;
@@ -634,9 +633,17 @@
           </div>
 
           <div style="font-size: 0.8rem; color: var(--gold); margin-top: 20px; margin-bottom: 5px; text-align: center;">
-            📱 データ引き継ぎ用 QRコード
+            📁 テキストファイルによるデータ引き継ぎ
           </div>
-          <div id="qrcode" style="display: flex; justify-content: center; background: #fff; padding: 10px; border-radius: 6px; margin-bottom: 10px;"></div>
+          <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <button onclick="exportDataFile()" style="flex: 1; background: linear-gradient(to bottom, #3b5c42, #1f3524); border-color: #6bb87d; color: #bfe3cf; font-size: 0.8rem; padding: 8px;">
+              📥 ファイルに保存
+            </button>
+            <label style="flex: 1; display: inline-block; text-align: center; background: linear-gradient(to bottom, #3b4d5c, #1f2835); border: 2px solid #6ba4b8; color: #bfe3f3; font-size: 0.8rem; padding: 8px; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.4);">
+              📤 ファイルを読み込む
+              <input type="file" id="importFile" accept=".json,.txt" style="display: none;" onchange="importDataFile(event)">
+            </label>
+          </div>
         </div>
 
         <button
@@ -788,6 +795,56 @@
               osc.start(startTime + note.delay);
               osc.stop(startTime + note.delay + note.duration);
           });
+      }
+
+      // データをテキストファイル（JSON）として保存する
+      function exportDataFile() {
+          playSound('click');
+          const exportData = JSON.stringify({ 
+              games: gameDataList, 
+              assignments: scheduleAssignments, 
+              history: loginHistory 
+          }, null, 2);
+
+          const blob = new Blob([exportData], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          
+          link.href = url;
+          link.download = `冒険の時間割_データ_${new Date().toISOString().slice(0,10)}.json`;
+          link.click();
+          
+          URL.revokeObjectURL(url);
+          playSound('success');
+          document.getElementById('statusLog').textContent = "📥 データをテキストファイルとして保存しました！";
+      }
+
+      // 選択されたテキストファイルを読み込んで復元する
+      function importDataFile(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              try {
+                  const data = JSON.parse(e.target.result);
+                  if (data.games) gameDataList = data.games;
+                  if (data.assignments) scheduleAssignments = data.assignments;
+                  if (data.history) loginHistory = data.history;
+
+                  saveLocalBackup();
+                  updateDisplay();
+                  closeCertificateModal();
+                  playSound('success');
+                  document.getElementById('statusLog').textContent = "✨ テキストファイルからデータを読み込みました！";
+              } catch(err) {
+                  playSound('error');
+                  document.getElementById('statusLog').textContent = "⚠️ ファイルの形式が正しくありません";
+                  console.error(err);
+              }
+              event.target.value = '';
+          };
+          reader.readAsText(file);
       }
 
       // 冒険の証カード画像出力用関数
@@ -1080,30 +1137,26 @@
               });
           }
 
-          const qrContainer = document.getElementById('qrcode');
-          qrContainer.innerHTML = '';
-
-          const baseUrl = window.location.origin + window.location.pathname;
-          const exportData = JSON.stringify({ games: gameDataList, assignments: scheduleAssignments, history: loginHistory });
-          const qrUrl = baseUrl + '#data=' + encodeURIComponent(exportData);
-
-          try {
-              new QRCode(qrContainer, {
-                  text: qrUrl,
-                  width: 160,
-                  height: 160,
-                  colorDark : "#000000",
-                  colorLight : "#ffffff",
-                  correctErrorLevel: QRCode.CorrectLevel.L
+          const historyListEl = document.getElementById('historyLogList');
+          historyListEl.innerHTML = '';
+          if (loginHistory.length === 0) {
+              historyListEl.innerHTML = '<div class="empty-text" style="padding: 2px;">（記録がありません）</div>';
+          } else {
+              [...loginHistory].reverse().forEach(item => {
+                  const li = document.createElement('li');
+                  li.className = 'history-item';
+                  li.innerHTML = `<span>📅 ${item.date}</span><span style="color:var(--gold-light);">獲得: ${item.stamp}</span>`;
+                  historyListEl.appendChild(li);
               });
-          } catch(e) {
-              qrContainer.innerHTML = '<div style="color:red; font-size:0.75rem;">データ量超過</div>';
           }
 
           modal.classList.add('open');
       }
 
-      function closeCertificateModal() { playSound('click'); document.getElementById('certificateModal').classList.remove('open'); }
+      function closeCertificateModal() { 
+          playSound('click'); 
+          document.getElementById('certificateModal').classList.remove('open'); 
+      }
 
       function checkTodayStamp() {
           const today = getTodayStr();
@@ -1128,24 +1181,6 @@
       }
 
       function loadLocalBackup() {
-          const hash = window.location.hash;
-          if (hash.startsWith('#data=')) {
-              try {
-                  const jsonStr = decodeURIComponent(hash.substring(6));
-                  const data = JSON.parse(jsonStr);
-                  if (data.games) gameDataList = data.games;
-                  if (data.assignments) scheduleAssignments = data.assignments;
-                  if (data.history) loginHistory = data.history;
-
-                  saveLocalBackup();
-                  window.history.replaceState(null, null, window.location.pathname);
-                  document.getElementById('statusLog').textContent = "✨ QRコードからデータを引き継ぎました！";
-                  return;
-              } catch(e) {
-                  console.error("URLデータの復元に失敗しました", e);
-              }
-          }
-
           const raw = localStorage.getItem('zelda_game_data');
           if (raw) {
               try {
