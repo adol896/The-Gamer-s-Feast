@@ -524,7 +524,7 @@
   <body>
     <div class="zelda-container">
       <h1>⚔️ 冒険の献立表 ⚔️</h1>
-      <div class="subtitle">〜 インベントリ＆作戦黒板（タイトル・累計時間書込版） 〜</div>
+      <div class="subtitle">〜 インベントリ＆作戦黒板（タイトル・累計時間・スタンプ累計書込版） 〜</div>
 
       <div class="action-panel">
         <div class="input-row">
@@ -541,7 +541,7 @@
         <div class="btn-grid">
           <button class="auto-btn" onclick="autoBuildSchedule()">⚡ 自動で時間割を組み上げる</button>
           <button class="nfc-read-btn" onclick="readFromNfc()">📡 NFC読み込み</button>
-          <button class="nfc-write-btn" onclick="writeTitleAndTimeDataToNfc()">💾 タイトルと累計時間をNFC書き込み</button>
+          <button class="nfc-write-btn" onclick="writeFullDataToNfc()">💾 タイトル・累計時間・スタンプ累計をNFC書き込み</button>
           <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
         </div>
         <div id="statusLog">「NFC読み込み」を押してデータをロードしてください</div>
@@ -712,9 +712,9 @@
             所持ゲーム一覧の項目をタップして「完了」にすると、黒板に割り当てられていた合計時間がそのゲームの累計プレイ時間として加算されます。
           </p>
 
-          <h3>3. NFCカードでの連携機能（タイトルと累計時間）</h3>
+          <h3>3. NFCカードでの連携機能（全データ保存）</h3>
           <p>
-            「タイトルと累計時間をNFC書き込み」を押してNFCカードにかざすと、登録されているゲームの<b>タイトルと累計プレイ時間</b>がカードへ書き込まれます。
+            「タイトル・累計時間・スタンプ累計をNFC書き込み」を押してNFCカードにかざすと、ゲーム情報と<b>獲得スタンプの累計・履歴</b>がカードへ丸ごと書き込まれます。
           </p>
           <div class="notice-box">
             <strong>⚠️ NFCカードご使用上の注意</strong>
@@ -1037,12 +1037,15 @@
           }).finally(() => blackboard.classList.remove('export-clean'));
       }
 
-      // ★ ゲームタイトルと累計時間をオブジェクト配列でNFC用に生成
-      function generateTitleAndTimeNfcData() {
-          const dataToSave = gameDataList.map(g => ({
-              t: g.title,
-              m: g.totalMinutes || 0
-          }));
+      // ★ ゲームタイトル、累計時間、および獲得スタンプ履歴をオブジェクトでNFC用に生成
+      function generateFullNfcData() {
+          const dataToSave = {
+              games: gameDataList.map(g => ({
+                  t: g.title,
+                  m: g.totalMinutes || 0
+              })),
+              history: loginHistory
+          };
           return JSON.stringify(dataToSave);
       }
 
@@ -1072,7 +1075,15 @@
                                   parsed = textData.split('\n').map(s => s.trim()).filter(Boolean);
                               }
 
-                              if (Array.isArray(parsed)) {
+                              if (parsed && typeof parsed === 'object' && parsed.games) {
+                                  gameDataList = parsed.games.map(g => ({
+                                      title: g.title || g.t || "名無しのゲーム",
+                                      playCount: g.playCount || g.p || 0,
+                                      totalMinutes: g.totalMinutes || g.m || 0,
+                                      completed: g.completed !== undefined ? g.completed : false
+                                  }));
+                                  if (parsed.history) loginHistory = parsed.history;
+                              } else if (Array.isArray(parsed)) {
                                   gameDataList = parsed.map(item => {
                                       if (typeof item === 'object' && item !== null) {
                                           return {
@@ -1090,21 +1101,12 @@
                                           };
                                       }
                                   });
-                              } else if (parsed && typeof parsed === 'object' && parsed.games) {
-                                  gameDataList = parsed.games.map(g => ({
-                                      title: g.title || g.t || "名無しのゲーム",
-                                      playCount: g.playCount || g.p || 0,
-                                      totalMinutes: g.totalMinutes || g.m || 0,
-                                      completed: g.completed !== undefined ? g.completed : false
-                                  }));
-                                  if (parsed.assignments) scheduleAssignments = parsed.assignments;
-                                  if (parsed.history) loginHistory = parsed.history;
                               }
 
                               initDefaultSchedule();
                               updateDisplay();
                               saveLocalBackup();
-                              statusEl.textContent = "✨ NFCからゲームデータ（タイトル・累計時間）を読み込みました！";
+                              statusEl.textContent = "✨ NFCからゲームデータとスタンプ累計を読み込みました！";
                               checkTodayStamp();
                           } catch(err) {
                               console.error(err);
@@ -1129,8 +1131,8 @@
           saveLocalBackup();
       }
 
-      // ★ タイトルと累計時間をNFCに書き込む処理
-      async function writeTitleAndTimeDataToNfc() {
+      // ★ タイトル・累計時間・スタンプ累計をNFCに書き込む処理
+      async function writeFullDataToNfc() {
           playSound('click');
           const statusEl = document.getElementById('statusLog');
           if (!('NDEFReader' in window)) {
@@ -1140,9 +1142,9 @@
           }
           try {
               const ndef = new NDEFReader();
-              statusEl.textContent = "✍️ 【タイトル・累計時間書込】NFCタグにタッチしてください...";
+              statusEl.textContent = "✍️ 【全データ書込】NFCタグにタッチしてください...";
 
-              const nfcDataStr = generateTitleAndTimeNfcData();
+              const nfcDataStr = generateFullNfcData();
 
               await ndef.write({
                   records: [
@@ -1151,7 +1153,7 @@
               });
 
               playSound('success');
-              statusEl.textContent = "🎉 ゲームタイトルと累計時間の書き込みに成功しました！";
+              statusEl.textContent = "🎉 タイトル・累計時間・スタンプ累計の書き込みに成功しました！";
           } catch (e) {
               playSound('error');
               statusEl.textContent = "❌ 書き込み失敗: " + e;
