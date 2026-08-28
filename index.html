@@ -589,10 +589,10 @@
     <!-- モーダル：冒険の証（プレイヤーカード） -->
     <div class="modal-overlay" id="certificateModal">
       <div class="modal-card" id="certModalCard">
-        <div class="cert-header">
-          <h2 style="color: var(--gold); margin:0;">✨ 冒険の証 ✨</h2>
-          <div style="font-size:0.8rem; color:var(--text-sub);">Player Certificate</div>
-        </div>
+<div class="cert-header">
+  <h2 style="color: var(--gold); margin:0;">✨ 冒険の証 ✨ <span id="certLevelDisplay" style="font-size: 1.1rem; color: var(--gold-light);">Lv.0</span></h2>
+  <div style="font-size:0.8rem; color:var(--text-sub);">Player Certificate</div>
+</div>
 
         <div style="font-size:0.85rem; color:var(--gold-light);">現在の冒険者ランク</div>
         <div class="cert-rank" id="certRankDisplay">🟤 ブロンズの旅人</div>
@@ -811,11 +811,12 @@
       // データをテキストファイル（JSON）として保存する
       function exportDataFile() {
           playSound('click');
-          const exportData = JSON.stringify({
-              games: gameDataList,
-              assignments: scheduleAssignments,
-              history: loginHistory
-          }, null, 2);
+const exportData = JSON.stringify({
+    games: gameDataList,
+    assignments: scheduleAssignments,
+    history: loginHistory,
+    level: playerLevel // 追加
+}, null, 2);
 
           const blob = new Blob([exportData], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
@@ -842,6 +843,7 @@
                   if (data.games) gameDataList = data.games;
                   if (data.assignments) scheduleAssignments = data.assignments;
                   if (data.history) loginHistory = data.history;
+if (data.level !== undefined) playerLevel = data.level;
 
                   saveLocalBackup();
                   updateDisplay();
@@ -901,6 +903,7 @@
       let scheduleAssignments = [];
       let gameDataList = [];
       let loginHistory = [];
+      let playerLevel = 0; // プレイヤーのレベル（初期値0）
 
       const BASE_START_HOUR = 9;
       const BASE_START_MIN = 0;
@@ -1058,6 +1061,7 @@
                               gameDataList = data.games || data;
                               if (data.assignments) scheduleAssignments = data.assignments;
                               if (data.history) loginHistory = data.history;
+if (data.level !== undefined) playerLevel = data.level;
                               updateDisplay();
                               statusEl.textContent = "✨ NFCからデータをロードしました！";
                               checkTodayStamp();
@@ -1076,9 +1080,12 @@
           if (!('NDEFReader' in window)) return;
           try {
               const ndef = new NDEFReader();
-              const payload = { games: gameDataList, assignments: scheduleAssignments, history: loginHistory };
-              await ndef.write({
-                  records: [
+const payload = { 
+    games: gameDataList, 
+    assignments: scheduleAssignments, 
+    history: loginHistory,
+    level: playerLevel
+};                  records: [
                       { recordType: "text", data: JSON.stringify(payload) }
                   ]
               });
@@ -1107,7 +1114,12 @@
               const ndef = new NDEFReader();
               statusEl.textContent = "✍️ 【URL＋データ同時書き込み】NFCタグにタッチしてください...";
               
-              const payload = { games: gameDataList, assignments: scheduleAssignments, history: loginHistory };
+              const payload = { 
+    games: gameDataList, 
+    assignments: scheduleAssignments, 
+    history: loginHistory,
+    level: playerLevel
+};
               
               // 1つのメッセージにURLとテキストの2つのレコードを同時に含める
               await ndef.write({ 
@@ -1130,9 +1142,12 @@
       function openInfoModal() { playSound('click'); document.getElementById('infoModal').classList.add('open'); }
       function closeInfoModal() { playSound('click'); document.getElementById('infoModal').classList.remove('open'); }
 
-      function openCertificateModal() {
-          playSound('click');
-          const modal = document.getElementById('certificateModal');
+function openCertificateModal() {
+    playSound('click');
+    const modal = document.getElementById('certificateModal');
+
+    // ▼ レベルの表示を更新
+    document.getElementById('certLevelDisplay').textContent = `Lv.${playerLevel}`;
 
           const totalDays = loginHistory.length;
           let titleStr = "🟤 ブロンズの旅人";
@@ -1214,22 +1229,29 @@
           document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！`;
       }
 
-      function saveLocalBackup() {
-          localStorage.setItem('zelda_game_data', JSON.stringify({ games: gameDataList, assignments: scheduleAssignments, history: loginHistory }));
-      }
+// saveLocalBackup の変更後
+function saveLocalBackup() {
+    localStorage.setItem('zelda_game_data', JSON.stringify({ 
+        games: gameDataList, 
+        assignments: scheduleAssignments, 
+        history: loginHistory,
+        level: playerLevel // 追加
+    }));
+}
 
-      function loadLocalBackup() {
-          const raw = localStorage.getItem('zelda_game_data');
-          if (raw) {
-              try {
-                  const data = JSON.parse(raw);
-                  if (data.games) gameDataList = data.games;
-                  if (data.assignments) scheduleAssignments = data.assignments;
-                  if (data.history) loginHistory = data.history;
-              } catch(e){}
-          }
-      }
-
+// loadLocalBackup の変更後
+function loadLocalBackup() {
+    const raw = localStorage.getItem('zelda_game_data');
+    if (raw) {
+        try {
+            const data = JSON.parse(raw);
+            if (data.games) gameDataList = data.games;
+            if (data.assignments) scheduleAssignments = data.assignments;
+            if (data.history) loginHistory = data.history;
+            if (data.level !== undefined) playerLevel = data.level; // 追加
+        } catch(e){}
+    }
+}
       function updateDisplay() {
           const listEl = document.getElementById('lineupList');
           listEl.innerHTML = '';
