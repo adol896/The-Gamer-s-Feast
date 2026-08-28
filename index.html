@@ -544,7 +544,7 @@
           <button class="nfc-write-btn" onclick="writeDataOnlyToNfc()">💾 NFCデータ書き込み</button>
           <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
         </div>
-        <div id="statusLog">「NFC書き込み」を押してかざすと、起動URLとデータが同時にセットされます[cite: 4]</div>
+        <div id="statusLog">「NFC読み込み」を押してデータをロードしてください</div>
       </div>
 
       <div class="section-title">
@@ -600,7 +600,6 @@
           <h2 style="color: var(--gold); margin:0;">
             ✨ 冒険の証 ✨
             <span id="certLevelDisplay" style="font-size: 1.1rem; color: var(--gold-light);">Lv.0</span>
-           [cite: 4]
           </h2>
           <div style="font-size:0.8rem; color:var(--text-sub);">Player Certificate[cite: 4]</div>
         </div>
@@ -920,7 +919,7 @@
                   const BASE_START_MIN = 0;
 
                   initDefaultSchedule();
-                  loadLocalBackup();
+                  // 起動時の自動ロード（loadLocalBackup）を廃止し、NFC読み込みボタン等で明示的にロードする仕様に変更
                   updateDisplay();
 
                   function getTodayStr() {
@@ -960,7 +959,7 @@
                       gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
                       initDefaultSchedule();
                       updateDisplay();
-                      saveLocalBackup(); // 自動NFC書き込みを廃止し、ローカルストレージ保存のみに変更
+                      saveLocalBackup();
                       document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！[cite: 4]`;
                   }
 
@@ -992,7 +991,7 @@
                       playSound('switch');
                       initDefaultSchedule();
                       updateDisplay();
-                      saveLocalBackup(); // 自動NFC書き込みを廃止し、ローカルストレージ保存のみに変更
+                      saveLocalBackup();
                       document.getElementById('statusLog').textContent = "⚡ 時間割を自動で組み上げました！[cite: 4]";
                   }
 
@@ -1000,14 +999,14 @@
                       playSound('switch');
                       scheduleAssignments[frameIndex].gameIndexVal = selectedValue;
                       updateDisplay();
-                      saveLocalBackup(); // 自動NFC書き込みを廃止し、ローカルストレージ保存のみに変更
+                      saveLocalBackup();
                   }
 
                   function changeScheduleDuration(frameIndex, newDuration) {
                       playSound('switch');
                       scheduleAssignments[frameIndex].duration = parseFloat(newDuration);
                       updateDisplay();
-                      saveLocalBackup(); // 自動NFC書き込みを廃止し、ローカルストレージ保存のみに変更
+                      saveLocalBackup();
                   }
 
                   function toggleComplete(gameIndex) {
@@ -1031,7 +1030,7 @@
                       }
 
                       updateDisplay();
-                      saveLocalBackup(); // 自動NFC書き込みを廃止し、ローカルストレージ保存のみに変更
+                      saveLocalBackup();
                   }
 
                   function exportBlackboardImage() {
@@ -1101,7 +1100,6 @@
                       }
                   }
 
-                  // syncToNfc は自動書き込みからは外しますが、明示的な処理として残しておきます
                   async function syncToNfc() {
                       saveLocalBackup();
                       if (!('NDEFReader' in window)) return;
@@ -1122,7 +1120,7 @@
                       gameDataList.splice(index, 1);
                       initDefaultSchedule();
                       updateDisplay();
-                      saveLocalBackup(); // 自動NFC書き込みを廃止し、ローカルストレージ保存のみに変更
+                      saveLocalBackup();
                   }
 
                   // URLとゲームデータをまとめて1つのタグに同時に書き込む関数
@@ -1241,7 +1239,7 @@
 
                       closeStampModal();
                       updateDisplay();
-                      saveLocalBackup(); // 自動NFC書き込みを廃止し、ローカルストレージ保存のみに変更
+                      saveLocalBackup();
                       document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！[cite: 4]`;
                   }
 
@@ -1287,7 +1285,7 @@
                       const listEl = document.getElementById('lineupList');
                       listEl.innerHTML = '';
                       if (gameDataList.length === 0) {
-                          listEl.innerHTML = '<div class="empty-text">（ゲームが登録されていません）[cite: 4]</div>';
+                          listEl.innerHTML = '<div class="empty-text">（ゲームが登録されていません。「NFC読み込み」または手動で追加してください）</div>';
                       } else {
                           gameDataList.forEach((g, idx) => {
                               const totalMins = g.totalMinutes || 0;
