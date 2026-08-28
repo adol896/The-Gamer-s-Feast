@@ -544,7 +544,7 @@
           <button class="nfc-write-btn" onclick="writeDataOnlyToNfc()">💾 NFCデータ書き込み</button>
           <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
         </div>
-        <div id="statusLog">「NFC書き込み」を押してかざすと、データがセットされます[cite: 4]</div>
+        <div id="statusLog">「NFC書き込み」を押してかざすと、起動URLとデータが同時にセットされます[cite: 4]</div>
       </div>
 
       <div class="section-title">
@@ -956,14 +956,68 @@
                             inputEl.value = '';
                         }
 
-                        function addGameToList(title) {
-                            gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
-                            initDefaultSchedule();
-                            updateDisplay();
-                            syncToNfc();
-                            document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！[cite: 4]`;
-                        }
+      function addGameToList(title) {
+                      gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
+                      initDefaultSchedule();
+                      updateDisplay();
+                      saveLocalBackup(); // 自動保存のみ
+                      document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！[cite: 4]`;
+                  }
 
+                  function autoBuildSchedule() {
+                      playSound('switch');
+                      initDefaultSchedule();
+                      updateDisplay();
+                      saveLocalBackup(); // 自動保存のみ
+                      document.getElementById('statusLog').textContent = "⚡ 時間割を自動で組み上げました！[cite: 4]";
+                  }
+
+                  function changeScheduleGame(frameIndex, selectedValue) {
+                      playSound('switch');
+                      scheduleAssignments[frameIndex].gameIndexVal = selectedValue;
+                      updateDisplay();
+                      saveLocalBackup(); // 自動保存のみ
+                  }
+
+                  function changeScheduleDuration(frameIndex, newDuration) {
+                      playSound('switch');
+                      scheduleAssignments[frameIndex].duration = parseFloat(newDuration);
+                      updateDisplay();
+                      saveLocalBackup(); // 自動保存のみ
+                  }
+
+                  function toggleComplete(gameIndex) {
+                      playSound('success');
+                      let g = gameDataList[gameIndex];
+                      g.completed = !g.completed;
+
+                      if(g.completed) {
+                          let assignedMins = 0;
+                          scheduleAssignments.forEach(a => {
+                              if(a.gameIndexVal === String(gameIndex)) {
+                                  assignedMins += Math.round(a.duration * 60);
+                              }
+                          });
+
+                          g.totalMinutes = (g.totalMinutes || 0) + assignedMins;
+                          g.playCount = (g.playCount || 0) + 1;
+                          document.getElementById('statusLog').textContent = `⚔️ 「${g.title}」の目標達成！（+${assignedMins}分記録）[cite: 4]`;
+                      } else {
+                          document.getElementById('statusLog').textContent = `🔄 「${g.title}」を未完了に戻しました[cite: 4]`;
+                      }
+
+                      updateDisplay();
+                      saveLocalBackup(); // 自動保存のみ
+                  }
+
+                  function removeGame(index, event) {
+                      playSound('switch');
+                      event.stopPropagation();
+                      gameDataList.splice(index, 1);
+                      initDefaultSchedule();
+                      updateDisplay();
+                      saveLocalBackup(); // 自動保存のみ
+                  }
                         let recognition = null;
                         let isListening = false;
                         function toggleVoiceInput() {
