@@ -544,7 +544,7 @@
           <button class="nfc-write-btn" onclick="writeDataOnlyToNfc()">💾 NFCデータ書き込み</button>
           <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
         </div>
-        <div id="statusLog">「NFC書き込み」を押してかざすと、データがセットされます[cite: 4]</div>
+        <div id="statusLog">「NFC書き込み」を押してかざすと、起動URLとデータが同時にセットされます[cite: 4]</div>
       </div>
 
       <div class="section-title">
@@ -1062,25 +1062,36 @@
                           const ndef = new NDEFReader();
                           await ndef.scan();
                           statusEl.textContent = "📡 NFCカードをタッチしてください...[cite: 4]";
-                          ndef.onreading = event => {
-                              playSound('success');
-                              const decoder = new TextDecoder();
-                              for (const record of event.message.records) {
-                                  if (record.recordType === "text") {
-                                      try {
-                                          const data = JSON.parse(decoder.decode(record.data));
-                                          gameDataList = data.games || data;
-                                          if (data.assignments) scheduleAssignments = data.assignments;
-                                          if (data.history) loginHistory = data.history;
-                                          if (data.level !== undefined) playerLevel = data.level;
-                                          updateDisplay();
-                                          statusEl.textContent = "✨ NFCからデータをロードしました！[cite: 4]";
-                                          checkTodayStamp();
-                                      } catch(err) {}
-                                  }
-                              }
-                          };
-                      } catch (e) {
+      ndef.onreading = event => {
+          playSound('success');
+          const decoder = new TextDecoder();
+          for (const record of event.message.records) {
+              if (record.recordType === "text") {
+                  try {
+                      const data = JSON.parse(decoder.decode(record.data));
+
+                      // 読み込んだデータが配列かオブジェクトかによって安全に取得
+                      const rawGames = data.games || data;
+                      gameDataList = Array.isArray(rawGames) ? rawGames.map(g => ({
+                          title: g.title || g.t || "名無しのゲーム",
+                          totalMinutes: g.totalMinutes || g.m || 0,
+                          completed: g.completed !== undefined ? g.completed : (g.c === 1)
+                      })) : [];
+
+                      if (data.assignments) scheduleAssignments = data.assignments;
+                      if (data.history) loginHistory = data.history;
+                      if (data.level !== undefined) playerLevel = data.level;
+                      if (data.l !== undefined) playerLevel = data.l;
+
+                      updateDisplay();
+                      statusEl.textContent = "✨ NFCからデータをロードしました！[cite: 4]";
+                      checkTodayStamp();
+                  } catch(err) {
+                      console.error(err);
+                  }
+              }
+          }
+      };                } catch (e) {
                           playSound('error');
                           statusEl.textContent = "❌ NFC読み込みエラー: " + e;
                       }
@@ -1231,18 +1242,20 @@
                       document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！[cite: 4]`;
                   }
 
-      // 履歴や時間割を除外し、タイトル・累計時間・レベルだけに絞ってキー名を短縮する
       function generateCompactNfcData(games) {
           const compactList = games.map(g => ({
-              t: g.title,          // タイトル (title)
-              h: g.totalHours,     // 累計時間 (totalHours)
-              l: g.level           // レベル (level)
+              title: g.title,
+              totalMinutes: g.totalMinutes || 0,
+              completed: g.completed ? true : false
           }));
 
-          // 空白を含めない圧縮されたJSON文字列を返す
-          return JSON.stringify(compactList);
+          return JSON.stringify({
+              level: playerLevel,
+              games: compactList,
+              assignments: scheduleAssignments,
+              history: loginHistory
+          });
       }
-
                   function loadLocalBackup() {
                       const raw = localStorage.getItem('zelda_game_data');
                       if (raw) {
