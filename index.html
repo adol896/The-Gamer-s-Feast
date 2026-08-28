@@ -524,7 +524,7 @@
   <body>
     <div class="zelda-container">
       <h1>⚔️ 冒険の献立表 ⚔️</h1>
-      <div class="subtitle">〜 インベントリ＆作戦黒板（タイトル書込版） 〜</div>
+      <div class="subtitle">〜 インベントリ＆作戦黒板（タイトル・累計時間書込版） 〜</div>
 
       <div class="action-panel">
         <div class="input-row">
@@ -541,7 +541,7 @@
         <div class="btn-grid">
           <button class="auto-btn" onclick="autoBuildSchedule()">⚡ 自動で時間割を組み上げる</button>
           <button class="nfc-read-btn" onclick="readFromNfc()">📡 NFC読み込み</button>
-          <button class="nfc-write-btn" onclick="writeDataOnlyToNfc()">💾 タイトルのみNFC書き込み</button>
+          <button class="nfc-write-btn" onclick="writeTitleAndTimeDataToNfc()">💾 タイトルと累計時間をNFC書き込み</button>
           <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
         </div>
         <div id="statusLog">「NFC読み込み」を押してデータをロードしてください</div>
@@ -597,9 +597,8 @@
     <div class="modal-overlay" id="certificateModal">
       <div class="modal-card" id="certModalCard">
         <div class="cert-header">
-          <h2 style="color: var(--gold); margin:0;">
+          <h2 style="color: var(--gold); margin:0; font-size: 1.3rem;">
             ✨ 冒険の証 ✨
-            <span id="certLevelDisplay" style="font-size: 1.1rem; color: var(--gold-light);">Lv.0</span>
           </h2>
           <div style="font-size:0.8rem; color:var(--text-sub);">Player Certificate</div>
         </div>
@@ -713,9 +712,9 @@
             所持ゲーム一覧の項目をタップして「完了」にすると、黒板に割り当てられていた合計時間がそのゲームの累計プレイ時間として加算されます。
           </p>
 
-          <h3>3. NFCカードでの連携機能（タイトルのみ書き込み）</h3>
+          <h3>3. NFCカードでの連携機能（タイトルと累計時間）</h3>
           <p>
-            「タイトルのみNFC書き込み」を押してNFCカードにかざすと、登録されている<b>ゲームのタイトル一覧のみ</b>がシンプルにカードへ書き込まれます。
+            「タイトルと累計時間をNFC書き込み」を押してNFCカードにかざすと、登録されているゲームの<b>タイトルと累計プレイ時間</b>がカードへ書き込まれます。
           </p>
           <div class="notice-box">
             <strong>⚠️ NFCカードご使用上の注意</strong>
@@ -820,8 +819,7 @@
           const exportData = JSON.stringify({
               games: gameDataList,
               assignments: scheduleAssignments,
-              history: loginHistory,
-              level: playerLevel
+              history: loginHistory
           }, null, 2);
 
           const blob = new Blob([exportData], { type: 'application/json' });
@@ -848,7 +846,6 @@
                   if (data.games) gameDataList = data.games;
                   if (data.assignments) scheduleAssignments = data.assignments;
                   if (data.history) loginHistory = data.history;
-                  if (data.level !== undefined) playerLevel = data.level;
 
                   saveLocalBackup();
                   updateDisplay();
@@ -906,7 +903,6 @@
       let scheduleAssignments = [];
       let gameDataList = [];
       let loginHistory = [];
-      let playerLevel = 0;
 
       const BASE_START_HOUR = 9;
       const BASE_START_MIN = 0;
@@ -1041,10 +1037,13 @@
           }).finally(() => blackboard.classList.remove('export-clean'));
       }
 
-      // ★ ここを変更：ゲームタイトル（文字列）の配列だけをNFC用に生成
-      function generateTitlesNfcData() {
-          const titles = gameDataList.map(g => g.title);
-          return JSON.stringify(titles);
+      // ★ ゲームタイトルと累計時間をオブジェクト配列でNFC用に生成
+      function generateTitleAndTimeNfcData() {
+          const dataToSave = gameDataList.map(g => ({
+              t: g.title,
+              m: g.totalMinutes || 0
+          }));
+          return JSON.stringify(dataToSave);
       }
 
       async function readFromNfc() {
@@ -1070,20 +1069,26 @@
                               try {
                                   parsed = JSON.parse(textData);
                               } catch(e) {
-                                  // JSONでない場合は改行区切りのテキストとして扱う
                                   parsed = textData.split('\n').map(s => s.trim()).filter(Boolean);
                               }
 
-                              // タイトルだけの配列として読み込む場合、または過去データ形式の場合の両対応
                               if (Array.isArray(parsed)) {
                                   gameDataList = parsed.map(item => {
-                                      const titleStr = (typeof item === 'object' && item !== null) ? (item.title || item.t || "名無しのゲーム") : String(item);
-                                      return {
-                                          title: titleStr,
-                                          playCount: (typeof item === 'object' && item !== null) ? (item.playCount || item.p || 0) : 0,
-                                          totalMinutes: (typeof item === 'object' && item !== null) ? (item.totalMinutes || item.m || 0) : 0,
-                                          completed: (typeof item === 'object' && item !== null) ? (item.completed !== undefined ? item.completed : false) : false
-                                      };
+                                      if (typeof item === 'object' && item !== null) {
+                                          return {
+                                              title: item.title || item.t || "名無しのゲーム",
+                                              playCount: item.playCount || item.p || 0,
+                                              totalMinutes: item.totalMinutes || item.m || 0,
+                                              completed: item.completed !== undefined ? item.completed : false
+                                          };
+                                      } else {
+                                          return {
+                                              title: String(item),
+                                              playCount: 0,
+                                              totalMinutes: 0,
+                                              completed: false
+                                          };
+                                      }
                                   });
                               } else if (parsed && typeof parsed === 'object' && parsed.games) {
                                   gameDataList = parsed.games.map(g => ({
@@ -1094,13 +1099,12 @@
                                   }));
                                   if (parsed.assignments) scheduleAssignments = parsed.assignments;
                                   if (parsed.history) loginHistory = parsed.history;
-                                  if (parsed.level !== undefined) playerLevel = parsed.level;
                               }
 
                               initDefaultSchedule();
                               updateDisplay();
                               saveLocalBackup();
-                              statusEl.textContent = "✨ NFCからゲームタイトルを読み込みました！";
+                              statusEl.textContent = "✨ NFCからゲームデータ（タイトル・累計時間）を読み込みました！";
                               checkTodayStamp();
                           } catch(err) {
                               console.error(err);
@@ -1125,8 +1129,8 @@
           saveLocalBackup();
       }
 
-      // ★ ここを変更：NFCへの書き込み処理をゲームタイトルのみにするバージョン
-      async function writeDataOnlyToNfc() {
+      // ★ タイトルと累計時間をNFCに書き込む処理
+      async function writeTitleAndTimeDataToNfc() {
           playSound('click');
           const statusEl = document.getElementById('statusLog');
           if (!('NDEFReader' in window)) {
@@ -1136,18 +1140,18 @@
           }
           try {
               const ndef = new NDEFReader();
-              statusEl.textContent = "✍️ 【タイトル書込】NFCタグにタッチしてください...";
+              statusEl.textContent = "✍️ 【タイトル・累計時間書込】NFCタグにタッチしてください...";
 
-              const titlesData = generateTitlesNfcData();
+              const nfcDataStr = generateTitleAndTimeNfcData();
 
               await ndef.write({
                   records: [
-                      { recordType: "text", data: titlesData }
+                      { recordType: "text", data: nfcDataStr }
                   ]
               });
 
               playSound('success');
-              statusEl.textContent = "🎉 ゲームタイトルの書き込みに成功しました！";
+              statusEl.textContent = "🎉 ゲームタイトルと累計時間の書き込みに成功しました！";
           } catch (e) {
               playSound('error');
               statusEl.textContent = "❌ 書き込み失敗: " + e;
@@ -1162,8 +1166,6 @@
       function openCertificateModal() {
           playSound('click');
           const modal = document.getElementById('certificateModal');
-
-          document.getElementById('certLevelDisplay').textContent = `Lv.${playerLevel}`;
 
           const totalDays = loginHistory.length;
           let titleStr = "🟤 ブロンズの旅人";
@@ -1249,8 +1251,7 @@
           const data = {
               games: gameDataList,
               assignments: scheduleAssignments,
-              history: loginHistory,
-              level: playerLevel
+              history: loginHistory
           };
           localStorage.setItem('zelda_game_data', JSON.stringify(data));
       }
