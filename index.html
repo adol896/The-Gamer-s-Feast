@@ -21,6 +21,42 @@
           --chalk-white: #ffffff;
           --chalk-yellow: #f1c40f;
           --neon-green: #39ff14;
+          
+          --bg-gradient: radial-gradient(circle, #382c21 0%, #1a1612 100%);
+      }
+
+      /* ❄️ 氷雪テーマ */
+      body.theme-snow {
+          --bg-color: #0b131a;
+          --panel-bg: #162436;
+          --panel-border: #569cd6;
+          --gold: #87ceeb;
+          --gold-light: #e0ffff;
+          --text-main: #e6f2ff;
+          --text-sub: #a9cce3;
+
+          --blackboard-bg: #101c29;
+          --blackboard-border: #2c4a6b;
+          --neon-green: #00ffff;
+          
+          --bg-gradient: radial-gradient(circle, #1a2a3a 0%, #0b131a 100%);
+      }
+
+      /* 🌲 深森テーマ */
+      body.theme-forest {
+          --bg-color: #0d1a0f;
+          --panel-bg: #1a2e1b;
+          --panel-border: #4caf50;
+          --gold: #8bc34a;
+          --gold-light: #dcedc8;
+          --text-main: #e8f5e9;
+          --text-sub: #a5d6a7;
+
+          --blackboard-bg: #0b1a0e;
+          --blackboard-border: #2e5232;
+          --neon-green: #b2ff59;
+          
+          --bg-gradient: radial-gradient(circle, #1f3d23 0%, #0d1a0f 100%);
       }
 
       body {
@@ -29,8 +65,9 @@
           font-family: 'Georgia', 'Times New Roman', 'YuMincho', serif;
           margin: 0;
           padding: 20px;
-          background-image: radial-gradient(circle, #382c21 0%, #1a1612 100%);
+          background-image: var(--bg-gradient);
           min-height: 100vh;
+          transition: background 0.5s ease, color 0.5s ease;
       }
 
       .zelda-container {
@@ -41,6 +78,7 @@
           border-radius: 12px;
           box-shadow: 0 0 20px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,0,0,0.6);
           padding: 20px;
+          transition: background-color 0.5s ease, border-color 0.5s ease;
       }
 
       h1 {
@@ -57,7 +95,25 @@
           text-align: center;
           color: var(--text-sub);
           font-size: 0.85rem;
-          margin-bottom: 20px;
+          margin-bottom: 15px;
+      }
+
+      .theme-selector {
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 15px;
+      }
+
+      .theme-selector select {
+          background: rgba(0, 0, 0, 0.4);
+          color: var(--gold-light);
+          border: 1px solid var(--panel-border);
+          padding: 6px 10px;
+          border-radius: 4px;
+          font-family: 'Georgia', serif;
+          font-size: 0.85rem;
+          cursor: pointer;
+          outline: none;
       }
 
       .action-panel {
@@ -187,7 +243,7 @@
           border-radius: 6px;
           padding: 15px;
           box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-          transition: all 0.1s;
+          transition: all 0.3s ease;
       }
 
       .blackboard-area.export-clean {
@@ -525,6 +581,14 @@
     <div class="zelda-container">
       <h1>⚔️ 冒険の献立表 ⚔️</h1>
       <div class="subtitle">〜 インベントリ＆作戦黒板（タイトル・累計時間・スタンプ累計書込版） 〜</div>
+
+      <div class="theme-selector">
+        <select id="themeSelect" onchange="changeTheme(this.value)">
+          <option value="default">🏕️ 通常 (ブラウン)</option>
+          <option value="snow">❄️ 氷雪 (ブルー)</option>
+          <option value="forest">🌲 深森 (グリーン)</option>
+        </select>
+      </div>
 
       <div class="action-panel">
         <div class="input-row">
@@ -871,7 +935,7 @@
                 const buttons = modalCard.querySelectorAll('button');
                 buttons.forEach(btn => btn.style.display = 'none');
 
-                html2canvas(modalCard, { backgroundColor: '#2d241b', scale: 2 }).then(canvas => {
+                html2canvas(modalCard, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--panel-bg'), scale: 2 }).then(canvas => {
                     playSound('success');
                     const link = document.createElement('a');
                     link.download = `冒険の証_${new Date().toISOString().slice(0,10)}.png`;
@@ -906,10 +970,29 @@
             let gameDataList = [];
             let loginHistory = [];
 
-      const BASE_START_HOUR = 9;
+            const BASE_START_HOUR = 9;
             const BASE_START_MIN = 0;
 
-            // ▼▼▼ 追加：ページを開いた時にデータを読み込む処理 ▼▼▼
+            // テーマ切り替え機能
+            function changeTheme(themeName, playAudio = true) {
+                document.body.classList.remove('theme-snow', 'theme-forest');
+                if (themeName !== 'default') {
+                    document.body.classList.add('theme-' + themeName);
+                }
+                localStorage.setItem('zelda_app_theme', themeName);
+                
+                if (playAudio && typeof playSound === 'function') {
+                    try { playSound('switch'); } catch(e){}
+                }
+            }
+
+            function loadTheme() {
+                const savedTheme = localStorage.getItem('zelda_app_theme') || 'default';
+                const themeSelect = document.getElementById('themeSelect');
+                if (themeSelect) themeSelect.value = savedTheme;
+                changeTheme(savedTheme, false);
+            }
+
             function loadLocalBackup() {
                 const savedData = localStorage.getItem('zelda_game_data');
                 if (savedData) {
@@ -923,16 +1006,15 @@
                         initDefaultSchedule();
                     }
                 } else {
-                    // 保存されたデータがない場合（初回起動時など）はデフォルトを生成
                     initDefaultSchedule();
                 }
             }
 
             // 初期化実行
+            loadTheme();
             loadLocalBackup();
             updateDisplay();
 
-            // ページを開いた時にも今日のスタンプが押されているかチェックする
             setTimeout(() => checkTodayStamp(), 800);
             function getTodayStr() {
                 const now = new Date();
@@ -1051,7 +1133,10 @@
                 const statusEl = document.getElementById('statusLog');
                 statusEl.textContent = "🖼️ 画像を生成中...";
                 blackboard.classList.add('export-clean');
-                html2canvas(blackboard, { backgroundColor: '#1e3328', scale: 2 }).then(canvas => {
+                
+                const bgColor = getComputedStyle(document.body).getPropertyValue('--blackboard-bg');
+                
+                html2canvas(blackboard, { backgroundColor: bgColor, scale: 2 }).then(canvas => {
                     playSound('success');
                     const link = document.createElement('a');
                     link.download = `冒険の時間割_${new Date().toISOString().slice(0,10)}.png`;
@@ -1061,7 +1146,6 @@
                 }).finally(() => blackboard.classList.remove('export-clean'));
             }
 
-            // ★ ゲームタイトル、累計時間、および獲得スタンプ履歴をオブジェクトでNFC用に生成
             function generateFullNfcData() {
                 const dataToSave = {
                     games: gameDataList.map(g => ({
@@ -1155,7 +1239,6 @@
                 saveLocalBackup();
             }
 
-            // ★ タイトル・累計時間・スタンプ累計をNFCに書き込む処理
             async function writeFullDataToNfc() {
                 playSound('click');
                 const statusEl = document.getElementById('statusLog');
