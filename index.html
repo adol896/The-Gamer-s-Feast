@@ -989,804 +989,835 @@
     </div>
 
     <script>
-            let audioCtx;
+                  let audioCtx;
 
-            function initAudio() {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            }
+                  function initAudio() {
+                      if (!audioCtx) {
+                          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                      }
+                  }
 
-            function playSound(type) {
-                initAudio();
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+                  function playSound(type) {
+                      initAudio();
+                      if (audioCtx.state === 'suspended') {
+                          audioCtx.resume();
+                      }
 
-                const osc = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
+                      const osc = audioCtx.createOscillator();
+                      const gainNode = audioCtx.createGain();
 
-                osc.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
+                      osc.connect(gainNode);
+                      gainNode.connect(audioCtx.destination);
 
-                const now = audioCtx.currentTime;
+                      const now = audioCtx.currentTime;
 
-                switch (type) {
-                    case 'click':
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(800, now);
-                        gainNode.gain.setValueAtTime(1, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                        osc.start(now);
-                        osc.stop(now + 0.05);
-                        break;
+                      switch (type) {
+                          case 'click':
+                              osc.type = 'sine';
+                              osc.frequency.setValueAtTime(800, now);
+                              gainNode.gain.setValueAtTime(1, now);
+                              gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                              osc.start(now);
+                              osc.stop(now + 0.05);
+                              break;
 
-                    case 'switch':
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(600, now);
-                        osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
-                        gainNode.gain.setValueAtTime(0.8, now);
-                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                        osc.start(now);
-                        osc.stop(now + 0.1);
-                        break;
+                          case 'switch':
+                              osc.type = 'triangle';
+                              osc.frequency.setValueAtTime(600, now);
+                              osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+                              gainNode.gain.setValueAtTime(0.8, now);
+                              gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                              osc.start(now);
+                              osc.stop(now + 0.1);
+                              break;
 
-                    case 'success':
-                        playSuccessArpeggio(now);
-                        break;
+                          case 'success':
+                              playSuccessArpeggio(now);
+                              break;
 
-                    case 'error':
-                        osc.type = 'sawtooth';
-                        osc.frequency.setValueAtTime(150, now);
-                        gainNode.gain.setValueAtTime(0, now);
-                        gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
-                        gainNode.gain.setValueAtTime(0.3, now + 0.2);
-                        gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                        osc.start(now);
-                        osc.stop(now + 0.25);
-                        break;
-                }
-            }
+                          case 'error':
+                              osc.type = 'sawtooth';
+                              osc.frequency.setValueAtTime(150, now);
+                              gainNode.gain.setValueAtTime(0, now);
+                              gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                              gainNode.gain.setValueAtTime(0.3, now + 0.2);
+                              gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                              osc.start(now);
+                              osc.stop(now + 0.25);
+                              break;
+                      }
+                  }
 
-            function playSuccessArpeggio(startTime) {
-                const notes = [
-                    { freq: 523.25, delay: 0, duration: 0.2 },
-                    { freq: 659.25, delay: 0.08, duration: 0.2 },
-                    { freq: 783.99, delay: 0.16, duration: 0.4 }
-                ];
+                  function playSuccessArpeggio(startTime) {
+                      const notes = [
+                          { freq: 523.25, delay: 0, duration: 0.2 },
+                          { freq: 659.25, delay: 0.08, duration: 0.2 },
+                          { freq: 783.99, delay: 0.16, duration: 0.4 }
+                      ];
 
-                notes.forEach(note => {
-                    const osc = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
+                      notes.forEach(note => {
+                          const osc = audioCtx.createOscillator();
+                          const gainNode = audioCtx.createGain();
 
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(note.freq, startTime + note.delay);
+                          osc.type = 'sine';
+                          osc.frequency.setValueAtTime(note.freq, startTime + note.delay);
 
-                    gainNode.gain.setValueAtTime(0, startTime + note.delay);
-                    gainNode.gain.linearRampToValueAtTime(0.3, startTime + note.delay + 0.02);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + note.delay + note.duration);
+                          gainNode.gain.setValueAtTime(0, startTime + note.delay);
+                          gainNode.gain.linearRampToValueAtTime(0.3, startTime + note.delay + 0.02);
+                          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + note.delay + note.duration);
 
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
+                          osc.connect(gainNode);
+                          gainNode.connect(audioCtx.destination);
 
-                    osc.start(startTime + note.delay);
-                    osc.stop(startTime + note.delay + note.duration);
-                });
-            }
+                          osc.start(startTime + note.delay);
+                          osc.stop(startTime + note.delay + note.duration);
+                      });
+                  }
 
-            function exportDataFile() {
-                playSound('click');
-                const exportData = JSON.stringify({
-                    games: gameDataList,
-                    assignments: scheduleAssignments,
-                    history: loginHistory,
-                    dailyGoals: dailyGoals
-                }, null, 2);
+                  function exportDataFile() {
+                      playSound('click');
+                      const exportData = JSON.stringify({
+                          games: gameDataList,
+                          assignments: scheduleAssignments,
+                          history: loginHistory,
+                          dailyGoals: dailyGoals
+                      }, null, 2);
 
-                const blob = new Blob([exportData], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
+                      const blob = new Blob([exportData], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
 
-                link.href = url;
-                link.download = `冒険の時間割_データ_${new Date().toISOString().slice(0,10)}.json`;
-                link.click();
+                      link.href = url;
+                      link.download = `冒険の時間割_データ_${new Date().toISOString().slice(0,10)}.json`;
+                      link.click();
 
-                URL.revokeObjectURL(url);
+                      URL.revokeObjectURL(url);
+                      playSound('success');
+                      document.getElementById('statusLog').textContent = "📥 データをテキストファイルとして保存しました！";
+                  }
+
+                  function importDataFile(event) {
+                      const file = event.target.files[0];
+                      if (!file) return;
+
+                      const reader = new FileReader();
+                      reader.onload = function(e) {
+                          try {
+                              const data = JSON.parse(e.target.result);
+                              if (data.games) gameDataList = data.games;
+                              if (data.assignments) scheduleAssignments = data.assignments;
+                              if (data.history) loginHistory = data.history;
+                              if (data.dailyGoals) dailyGoals = data.dailyGoals;
+
+                              saveLocalBackup();
+                              updateDisplay();
+                              closeCertificateModal();
+                              playSound('success');
+                              document.getElementById('statusLog').textContent = "✨ テキストファイルからデータを読み込みました！";
+                          } catch(err) {
+                              playSound('error');
+                              document.getElementById('statusLog').textContent = "⚠️ ファイルの形式が正しくありません";
+                              console.error(err);
+                          }
+                          event.target.value = '';
+                      };
+                      reader.readAsText(file);
+                  }
+
+                  function exportCertificateImage() {
+                      playSound('click');
+                      const modalCard = document.getElementById('certModalCard');
+
+                      const buttons = modalCard.querySelectorAll('button');
+                      buttons.forEach(btn => btn.style.display = 'none');
+
+                      html2canvas(modalCard, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--panel-bg'), scale: 2 }).then(canvas => {
+                          playSound('success');
+                          const link = document.createElement('a');
+                          link.download = `冒険の証_${new Date().toISOString().slice(0,10)}.png`;
+                          link.href = canvas.toDataURL('image/png');
+                          link.click();
+                      }).finally(() => {
+                          buttons.forEach(btn => btn.style.display = 'block');
+                      });
+                  }
+
+                  const defaultFrames = [
+                      { duration: 1.5, defaultType: "game" },
+                      { duration: 0.25, defaultType: "break" },
+                      { duration: 1.5, defaultType: "game" },
+                      { duration: 1.0, defaultType: "lunch" },
+                      { duration: 2.0, defaultType: "game" },
+                      { duration: 0.5, defaultType: "break" },
+                      { duration: 1.5, defaultType: "game" },
+                      { duration: 1.5, defaultType: "game" },
+                      { duration: 2.0, defaultType: "game" }
+                  ];
+
+                  const durationOptions = [
+                      { label: "5分", value: 5 / 60 }, { label: "10分", value: 10 / 60 },
+                      { label: "15分", value: 15 / 60 }, { label: "20分", value: 20 / 60 },
+                      { label: "30分", value: 30 / 60 }, { label: "1時間", value: 1.0 },
+                      { label: "1.5時間", value: 1.5 }, { label: "2時間", value: 2.0 },
+                      { label: "2.5時間", value: 2.5 }, { label: "3時間", value: 3.0 }, { label: "4時間", value: 4.0 }
+                  ];
+
+                  let scheduleAssignments = [];
+                  let gameDataList = [];
+                  let loginHistory = [];
+                  let dailySchedules = {};
+                  let currentDateStr = "";
+
+                  let currentBoardMode = 'schedule';
+                  let dailyGoals = {};
+                  let simpleGoalsData = [];
+
+                  const BASE_START_HOUR = 9;
+                  const BASE_START_MIN = 0;
+
+                  function changeTheme(themeName, playAudio = true) {
+                      document.body.classList.remove('theme-snow', 'theme-forest');
+                      if (themeName !== 'default') {
+                          document.body.classList.add('theme-' + themeName);
+                      }
+                      localStorage.setItem('zelda_app_theme', themeName);
+
+                      if (playAudio && typeof playSound === 'function') {
+                          try { playSound('switch'); } catch(e){}
+                      }
+                  }
+
+                  function loadTheme() {
+                      const savedTheme = localStorage.getItem('zelda_app_theme') || 'default';
+                      const themeSelect = document.getElementById('themeSelect');
+                      if (themeSelect) themeSelect.value = savedTheme;
+                      changeTheme(savedTheme, false);
+                  }
+
+                  function loadLocalBackup() {
+                      const savedData = localStorage.getItem('zelda_game_data');
+                      if (savedData) {
+                          try {
+                              const data = JSON.parse(savedData);
+                              if (data.games) gameDataList = data.games;
+                              if (data.history) loginHistory = data.history;
+                              if (data.dailySchedules) dailySchedules = data.dailySchedules;
+                              if (data.dailyGoals) dailyGoals = data.dailyGoals;
+                              else if (data.assignments) dailySchedules[getTodayStr()] = data.assignments;
+                          } catch (e) {
+                              console.error("データの読み込みに失敗しました", e);
+                          }
+                      }
+                      currentDateStr = getTodayStr();
+                      document.getElementById('scheduleDate').value = currentDateStr;
+                      onDateChange(false);
+                  }
+
+                  function onDateChange(playAudio = true) {
+                      if(playAudio) playSound('switch');
+
+                      currentDateStr = document.getElementById('scheduleDate').value;
+
+                      if (!dailySchedules[currentDateStr] || dailySchedules[currentDateStr].length === 0) {
+                          initDefaultSchedule();
+                      } else {
+                          scheduleAssignments = JSON.parse(JSON.stringify(dailySchedules[currentDateStr]));
+                      }
+
+                      if (!dailyGoals[currentDateStr]) {
+                          dailyGoals[currentDateStr] = [];
+                      }
+                      simpleGoalsData = dailyGoals[currentDateStr];
+
+                      updateDisplay();
+                      saveLocalBackup();
+                  }
+
+                  loadTheme();
+                  loadLocalBackup();
+                  updateDisplay();
+                  setTimeout(() => checkTodayStamp(), 800);
+
+                  function getTodayStr() {
+                      const now = new Date();
+                      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                  }
+
+                  function initDefaultSchedule() {
+                      let gameCounter = 0;
+                      scheduleAssignments = defaultFrames.map((f) => {
+                          let assignedVal = "-1";
+                          if (f.defaultType === "lunch") assignedVal = "-2";
+                          else if (f.defaultType === "game") {
+                              if (gameDataList.length > 0) {
+                                  assignedVal = String(gameCounter % gameDataList.length);
+                                  gameCounter++;
+                              } else assignedVal = "0";
+                          }
+                          return { gameIndexVal: assignedVal, duration: f.duration };
+                      });
+                      dailySchedules[currentDateStr] = scheduleAssignments;
+                  }
+
+                  function addGameFromInput() {
+                      const inputEl = document.getElementById('gameInput');
+                      const title = inputEl.value.trim();
+                      if (!title) {
+                          playSound('error');
+                          document.getElementById('statusLog').textContent = "⚠️ ゲームタイトルを入力してください";
+                          return;
+                      }
+                      playSound('success');
+                      addGameToList(title);
+                      inputEl.value = '';
+                  }
+
+                  function addGameToList(title) {
+                      gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
+                      initDefaultSchedule();
+                      updateDisplay();
+                      saveLocalBackup();
+                      document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！`;
+                  }
+
+                  let recognition = null;
+                  let isListening = false;
+                  function toggleVoiceInput() {
+                      playSound('click');
+                      const statusEl = document.getElementById('statusLog');
+                      const micBtn = document.getElementById('micBtn');
+                      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                      if (!SpeechRecognition) {
+                          playSound('error');
+                          statusEl.textContent = "⚠️ 音声非対応ブラウザです";
+                          return;
+                      }
+                      if (isListening && recognition) { recognition.stop(); return; }
+                      recognition = new SpeechRecognition();
+                      recognition.lang = 'ja-JP';
+                      recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); micBtn.textContent = "🛑 認識停止"; statusEl.textContent = "🎙️ 聴き取り中..."; };
+                      recognition.onresult = (e) => {
+                          playSound('success');
+                          addGameToList(e.results[0][0].transcript);
+                      };
+                      recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); micBtn.textContent = "🎤 音声入力"; };
+                      recognition.start();
+                  }
+
+                  function autoBuildSchedule() {
+                      playSound('switch');
+                      initDefaultSchedule();
+                      if(currentBoardMode === 'goal') toggleBoardMode();
+                      updateDisplay();
+                      saveLocalBackup();
+                      document.getElementById('statusLog').textContent = "⚡ 時間割を自動で組み上げました！";
+                  }
+
+                  function changeScheduleGame(frameIndex, selectedValue) {
+                      playSound('switch');
+                      scheduleAssignments[frameIndex].gameIndexVal = selectedValue;
+                      dailySchedules[currentDateStr] = scheduleAssignments;
+                      updateDisplay();
+                      saveLocalBackup();
+                  }
+
+                  function changeScheduleDuration(frameIndex, newDuration) {
+                      playSound('switch');
+                      scheduleAssignments[frameIndex].duration = parseFloat(newDuration);
+                      dailySchedules[currentDateStr] = scheduleAssignments;
+                      updateDisplay();
+                      saveLocalBackup();
+                  }
+
+            function toggleComplete(gameIndex) {
                 playSound('success');
-                document.getElementById('statusLog').textContent = "📥 データをテキストファイルとして保存しました！";
-            }
+                let g = gameDataList[gameIndex];
+                g.completed = !g.completed;
 
-            function importDataFile(event) {
-                const file = event.target.files[0];
-                if (!file) return;
+                if (g.completed) {
+                    let assignedMins = 0;
 
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        if (data.games) gameDataList = data.games;
-                        if (data.assignments) scheduleAssignments = data.assignments;
-                        if (data.history) loginHistory = data.history;
-                        if (data.dailyGoals) dailyGoals = data.dailyGoals;
-
-                        saveLocalBackup();
-                        updateDisplay();
-                        closeCertificateModal();
-                        playSound('success');
-                        document.getElementById('statusLog').textContent = "✨ テキストファイルからデータを読み込みました！";
-                    } catch(err) {
-                        playSound('error');
-                        document.getElementById('statusLog').textContent = "⚠️ ファイルの形式が正しくありません";
-                        console.error(err);
+                    // モード判定による時間計算の切り替え
+                    if (currentBoardMode === 'schedule') {
+                        // 【時間割モード】割り当てられている枠の合計時間を計算
+                        scheduleAssignments.forEach(a => {
+                            if (a.gameIndexVal === String(gameIndex)) {
+                                assignedMins += Math.round(a.duration * 60);
+                            }
+                        });
+                    } else if (currentBoardMode === 'goal') {
+                        // 【簡易目標モード】タイトルが一致する目標の合計時間を計算 (H*60 + M)
+                        simpleGoalsData.forEach(goal => {
+                            if (goal.title && goal.title.trim() === g.title.trim()) {
+                                const h = parseInt(goal.h) || 0;
+                                const m = parseInt(goal.m) || 0;
+                                assignedMins += (h * 60) + m;
+                            }
+                        });
                     }
-                    event.target.value = '';
-                };
-                reader.readAsText(file);
-            }
 
-            function exportCertificateImage() {
-                playSound('click');
-                const modalCard = document.getElementById('certModalCard');
+                    g.totalMinutes = (g.totalMinutes || 0) + assignedMins;
+                    g.playCount = (g.playCount || 0) + 1;
 
-                const buttons = modalCard.querySelectorAll('button');
-                buttons.forEach(btn => btn.style.display = 'none');
-
-                html2canvas(modalCard, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--panel-bg'), scale: 2 }).then(canvas => {
-                    playSound('success');
-                    const link = document.createElement('a');
-                    link.download = `冒険の証_${new Date().toISOString().slice(0,10)}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                }).finally(() => {
-                    buttons.forEach(btn => btn.style.display = 'block');
-                });
-            }
-
-            const defaultFrames = [
-                { duration: 1.5, defaultType: "game" },
-                { duration: 0.25, defaultType: "break" },
-                { duration: 1.5, defaultType: "game" },
-                { duration: 1.0, defaultType: "lunch" },
-                { duration: 2.0, defaultType: "game" },
-                { duration: 0.5, defaultType: "break" },
-                { duration: 1.5, defaultType: "game" },
-                { duration: 1.5, defaultType: "game" },
-                { duration: 2.0, defaultType: "game" }
-            ];
-
-            const durationOptions = [
-                { label: "5分", value: 5 / 60 }, { label: "10分", value: 10 / 60 },
-                { label: "15分", value: 15 / 60 }, { label: "20分", value: 20 / 60 },
-                { label: "30分", value: 30 / 60 }, { label: "1時間", value: 1.0 },
-                { label: "1.5時間", value: 1.5 }, { label: "2時間", value: 2.0 },
-                { label: "2.5時間", value: 2.5 }, { label: "3時間", value: 3.0 }, { label: "4時間", value: 4.0 }
-            ];
-
-            let scheduleAssignments = [];
-            let gameDataList = [];
-            let loginHistory = [];
-            let dailySchedules = {};
-            let currentDateStr = "";
-
-            let currentBoardMode = 'schedule';
-            let dailyGoals = {};
-            let simpleGoalsData = [];
-
-            const BASE_START_HOUR = 9;
-            const BASE_START_MIN = 0;
-
-            function changeTheme(themeName, playAudio = true) {
-                document.body.classList.remove('theme-snow', 'theme-forest');
-                if (themeName !== 'default') {
-                    document.body.classList.add('theme-' + themeName);
-                }
-                localStorage.setItem('zelda_app_theme', themeName);
-
-                if (playAudio && typeof playSound === 'function') {
-                    try { playSound('switch'); } catch(e){}
-                }
-            }
-
-            function loadTheme() {
-                const savedTheme = localStorage.getItem('zelda_app_theme') || 'default';
-                const themeSelect = document.getElementById('themeSelect');
-                if (themeSelect) themeSelect.value = savedTheme;
-                changeTheme(savedTheme, false);
-            }
-
-            function loadLocalBackup() {
-                const savedData = localStorage.getItem('zelda_game_data');
-                if (savedData) {
-                    try {
-                        const data = JSON.parse(savedData);
-                        if (data.games) gameDataList = data.games;
-                        if (data.history) loginHistory = data.history;
-                        if (data.dailySchedules) dailySchedules = data.dailySchedules;
-                        if (data.dailyGoals) dailyGoals = data.dailyGoals;
-                        else if (data.assignments) dailySchedules[getTodayStr()] = data.assignments;
-                    } catch (e) {
-                        console.error("データの読み込みに失敗しました", e);
-                    }
-                }
-                currentDateStr = getTodayStr();
-                document.getElementById('scheduleDate').value = currentDateStr;
-                onDateChange(false);
-            }
-
-            function onDateChange(playAudio = true) {
-                if(playAudio) playSound('switch');
-
-                currentDateStr = document.getElementById('scheduleDate').value;
-
-                if (!dailySchedules[currentDateStr] || dailySchedules[currentDateStr].length === 0) {
-                    initDefaultSchedule();
+                    const modeName = currentBoardMode === 'schedule' ? '時間割' : '簡易目標';
+                    document.getElementById('statusLog').textContent = `⚔️ 「${g.title}」の達成！（${modeName}より +${assignedMins}分記録）`;
                 } else {
-                    scheduleAssignments = JSON.parse(JSON.stringify(dailySchedules[currentDateStr]));
+                    document.getElementById('statusLog').textContent = `🔄 「${g.title}」を未完了に戻しました`;
                 }
 
-                if (!dailyGoals[currentDateStr]) {
-                    dailyGoals[currentDateStr] = [];
-                }
-                simpleGoalsData = dailyGoals[currentDateStr];
-
                 updateDisplay();
                 saveLocalBackup();
             }
 
-            loadTheme();
-            loadLocalBackup();
-            updateDisplay();
-            setTimeout(() => checkTodayStamp(), 800);
+      function exportBlackboardImage() {
+          playSound('click');
+          const blackboard = document.getElementById('blackboardArea');
+          const pageWrapper = document.querySelector('.page-wrapper');
+          const statusEl = document.getElementById('statusLog');
 
-            function getTodayStr() {
-                const now = new Date();
-                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-            }
+          statusEl.textContent = "🖼️ 画像を生成中...";
 
-            function initDefaultSchedule() {
-                let gameCounter = 0;
-                scheduleAssignments = defaultFrames.map((f) => {
-                    let assignedVal = "-1";
-                    if (f.defaultType === "lunch") assignedVal = "-2";
-                    else if (f.defaultType === "game") {
-                        if (gameDataList.length > 0) {
-                            assignedVal = String(gameCounter % gameDataList.length);
-                            gameCounter++;
-                        } else assignedVal = "0";
-                    }
-                    return { gameIndexVal: assignedVal, duration: f.duration };
-                });
-                dailySchedules[currentDateStr] = scheduleAssignments;
-            }
+          // 1. 出力用クラスを追加（UIパーツの一時非表示など）
+          blackboard.classList.add('export-clean');
 
-            function addGameFromInput() {
-                const inputEl = document.getElementById('gameInput');
-                const title = inputEl.value.trim();
-                if (!title) {
-                    playSound('error');
-                    document.getElementById('statusLog').textContent = "⚠️ ゲームタイトルを入力してください";
-                    return;
-                }
-                playSound('success');
-                addGameToList(title);
-                inputEl.value = '';
-            }
+          // 2. 一時的に transform / scale の影響を解除して等倍(1.0)に戻す
+          const originalTransform = pageWrapper ? pageWrapper.style.transform : '';
+          const originalWidth = pageWrapper ? pageWrapper.style.width : '';
 
-            function addGameToList(title) {
-                gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
-                initDefaultSchedule();
-                updateDisplay();
-                saveLocalBackup();
-                document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！`;
-            }
-
-            let recognition = null;
-            let isListening = false;
-            function toggleVoiceInput() {
-                playSound('click');
-                const statusEl = document.getElementById('statusLog');
-                const micBtn = document.getElementById('micBtn');
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (!SpeechRecognition) {
-                    playSound('error');
-                    statusEl.textContent = "⚠️ 音声非対応ブラウザです";
-                    return;
-                }
-                if (isListening && recognition) { recognition.stop(); return; }
-                recognition = new SpeechRecognition();
-                recognition.lang = 'ja-JP';
-                recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); micBtn.textContent = "🛑 認識停止"; statusEl.textContent = "🎙️ 聴き取り中..."; };
-                recognition.onresult = (e) => {
-                    playSound('success');
-                    addGameToList(e.results[0][0].transcript);
-                };
-                recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); micBtn.textContent = "🎤 音声入力"; };
-                recognition.start();
-            }
-
-            function autoBuildSchedule() {
-                playSound('switch');
-                initDefaultSchedule();
-                if(currentBoardMode === 'goal') toggleBoardMode();
-                updateDisplay();
-                saveLocalBackup();
-                document.getElementById('statusLog').textContent = "⚡ 時間割を自動で組み上げました！";
-            }
-
-            function changeScheduleGame(frameIndex, selectedValue) {
-                playSound('switch');
-                scheduleAssignments[frameIndex].gameIndexVal = selectedValue;
-                dailySchedules[currentDateStr] = scheduleAssignments;
-                updateDisplay();
-                saveLocalBackup();
-            }
-
-            function changeScheduleDuration(frameIndex, newDuration) {
-                playSound('switch');
-                scheduleAssignments[frameIndex].duration = parseFloat(newDuration);
-                dailySchedules[currentDateStr] = scheduleAssignments;
-                updateDisplay();
-                saveLocalBackup();
-            }
-
-      function toggleComplete(gameIndex) {
-          playSound('success');
-          let g = gameDataList[gameIndex];
-          g.completed = !g.completed;
-
-          if (g.completed) {
-              let assignedMins = 0;
-
-              // モード判定による時間計算の切り替え
-              if (currentBoardMode === 'schedule') {
-                  // 【時間割モード】割り当てられている枠の合計時間を計算
-                  scheduleAssignments.forEach(a => {
-                      if (a.gameIndexVal === String(gameIndex)) {
-                          assignedMins += Math.round(a.duration * 60);
-                      }
-                  });
-              } else if (currentBoardMode === 'goal') {
-                  // 【簡易目標モード】タイトルが一致する目標の合計時間を計算 (H*60 + M)
-                  simpleGoalsData.forEach(goal => {
-                      if (goal.title && goal.title.trim() === g.title.trim()) {
-                          const h = parseInt(goal.h) || 0;
-                          const m = parseInt(goal.m) || 0;
-                          assignedMins += (h * 60) + m;
-                      }
-                  });
-              }
-
-              g.totalMinutes = (g.totalMinutes || 0) + assignedMins;
-              g.playCount = (g.playCount || 0) + 1;
-
-              const modeName = currentBoardMode === 'schedule' ? '時間割' : '簡易目標';
-              document.getElementById('statusLog').textContent = `⚔️ 「${g.title}」の達成！（${modeName}より +${assignedMins}分記録）`;
-          } else {
-              document.getElementById('statusLog').textContent = `🔄 「${g.title}」を未完了に戻しました`;
+          if (pageWrapper) {
+              pageWrapper.style.transform = 'none';
+              pageWrapper.style.width = '100%';
           }
 
-          updateDisplay();
-          saveLocalBackup();
+          const bgColor = getComputedStyle(document.body).getPropertyValue('--blackboard-bg');
+
+          // 3. 画面描画の完了を少し待ってから html2canvas を実行
+          setTimeout(() => {
+              html2canvas(blackboard, {
+                  backgroundColor: bgColor,
+                  scale: 2,           // 高画質化
+                  useCORS: true,       // 外部リソース読み込み許可
+                  windowWidth: blackboard.scrollWidth,  // 見切れ防止のサイズ明示
+                  windowHeight: blackboard.scrollHeight
+              }).then(canvas => {
+                  playSound('success');
+                  const link = document.createElement('a');
+                  let prefix = currentBoardMode === 'schedule' ? '作戦時間割' : '簡易目標';
+                  link.download = `${prefix}_${new Date().toISOString().slice(0,10)}.png`;
+                  link.href = canvas.toDataURL('image/png');
+                  link.click();
+                  statusEl.textContent = "🖼️ 黒板画像を保存しました！";
+              }).catch(err => {
+                  console.error(err);
+                  statusEl.textContent = "❌ 画像保存に失敗しました";
+              }).finally(() => {
+                  // 4. 元の 75% 縮小スタイルに戻す
+                  if (pageWrapper) {
+                      pageWrapper.style.transform = originalTransform;
+                      pageWrapper.style.width = originalWidth;
+                  }
+                  blackboard.classList.remove('export-clean');
+              });
+          }, 50);
       }
 
-            function exportBlackboardImage() {
-                playSound('click');
-                const blackboard = document.getElementById('blackboardArea');
-                const statusEl = document.getElementById('statusLog');
-                statusEl.textContent = "🖼️ 画像を生成中...";
+                  function generateFullNfcData() {
+                      const dataToSave = {
+                          games: gameDataList.map(g => ({
+                              t: g.title,
+                              m: g.totalMinutes || 0
+                          })),
+                          history: loginHistory
+                      };
+                      return JSON.stringify(dataToSave);
+                  }
 
-                blackboard.classList.add('export-clean');
+                  async function readFromNfc() {
+                      playSound('click');
+                      const statusEl = document.getElementById('statusLog');
+                      if (!('NDEFReader' in window)) {
+                          playSound('error');
+                          statusEl.textContent = "⚠️ Web NFC非対応端末です";
+                          return;
+                      }
+                      try {
+                          const ndef = new NDEFReader();
+                          await ndef.scan();
+                          statusEl.textContent = "📡 NFCカードをタッチしてください...";
+                          ndef.onreading = event => {
+                              playSound('success');
+                              const decoder = new TextDecoder();
+                              for (const record of event.message.records) {
+                                  if (record.recordType === "text") {
+                                      try {
+                                          const textData = decoder.decode(record.data);
+                                          let parsed;
+                                          try { parsed = JSON.parse(textData); } catch(e) { parsed = textData.split('\n').map(s => s.trim()).filter(Boolean); }
 
-                const bgColor = getComputedStyle(document.body).getPropertyValue('--blackboard-bg');
+                                          if (parsed && typeof parsed === 'object' && parsed.games) {
+                                              gameDataList = parsed.games.map(g => ({
+                                                  title: g.title || g.t || "名無しのゲーム",
+                                                  playCount: g.playCount || g.p || 0,
+                                                  totalMinutes: g.totalMinutes || g.m || 0,
+                                                  completed: g.completed !== undefined ? g.completed : false
+                                              }));
+                                              if (parsed.history) loginHistory = parsed.history;
+                                          } else if (Array.isArray(parsed)) {
+                                              gameDataList = parsed.map(item => {
+                                                  if (typeof item === 'object' && item !== null) {
+                                                      return {
+                                                          title: item.title || item.t || "名無しのゲーム",
+                                                          playCount: item.playCount || item.p || 0,
+                                                          totalMinutes: item.totalMinutes || item.m || 0,
+                                                          completed: item.completed !== undefined ? item.completed : false
+                                                      };
+                                                  } else { return { title: String(item), playCount: 0, totalMinutes: 0, completed: false }; }
+                                              });
+                                          }
+                                          initDefaultSchedule();
+                                          updateDisplay();
+                                          saveLocalBackup();
+                                          statusEl.textContent = "✨ NFCからゲームデータとスタンプ累計を読み込みました！";
+                                          checkTodayStamp();
+                                      } catch(err) {
+                                          playSound('error');
+                                          statusEl.textContent = "⚠️ データの解析に失敗しました";
+                                      }
+                                  }
+                              }
+                          };
+                      } catch (e) { playSound('error'); statusEl.textContent = "❌ NFC読み込みエラー: " + e; }
+                  }
 
-                html2canvas(blackboard, { backgroundColor: bgColor, scale: 2 }).then(canvas => {
-                    playSound('success');
-                    const link = document.createElement('a');
-                    let prefix = currentBoardMode === 'schedule' ? '作戦時間割' : '簡易目標';
-                    link.download = `${prefix}_${new Date().toISOString().slice(0,10)}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    statusEl.textContent = "🖼️ 黒板画像を保存しました！";
-                }).finally(() => blackboard.classList.remove('export-clean'));
-            }
+                  function removeGame(index, event) {
+                      playSound('switch');
+                      event.stopPropagation();
+                      gameDataList.splice(index, 1);
+                      initDefaultSchedule();
+                      updateDisplay();
+                      saveLocalBackup();
+                  }
 
-            function generateFullNfcData() {
-                const dataToSave = {
-                    games: gameDataList.map(g => ({
-                        t: g.title,
-                        m: g.totalMinutes || 0
-                    })),
-                    history: loginHistory
-                };
-                return JSON.stringify(dataToSave);
-            }
+                  async function writeFullDataToNfc() {
+                      playSound('click');
+                      const statusEl = document.getElementById('statusLog');
+                      if (!('NDEFReader' in window)) {
+                          playSound('error');
+                          statusEl.textContent = "⚠️ Web NFC非対応環境です";
+                          return;
+                      }
+                      try {
+                          const ndef = new NDEFReader();
+                          statusEl.textContent = "✍️ 【全データ書込】NFCタグにタッチしてください...";
+                          const nfcDataStr = generateFullNfcData();
+                          await ndef.write({ records: [ { recordType: "text", data: nfcDataStr } ] });
+                          playSound('success');
+                          statusEl.textContent = "🎉 タイトル・累計時間・スタンプ累計の書き込みに成功しました！";
+                      } catch (e) { playSound('error'); statusEl.textContent = "❌ 書き込み失敗: " + e; }
+                  }
 
-            async function readFromNfc() {
-                playSound('click');
-                const statusEl = document.getElementById('statusLog');
-                if (!('NDEFReader' in window)) {
-                    playSound('error');
-                    statusEl.textContent = "⚠️ Web NFC非対応端末です";
-                    return;
-                }
-                try {
-                    const ndef = new NDEFReader();
-                    await ndef.scan();
-                    statusEl.textContent = "📡 NFCカードをタッチしてください...";
-                    ndef.onreading = event => {
-                        playSound('success');
-                        const decoder = new TextDecoder();
-                        for (const record of event.message.records) {
-                            if (record.recordType === "text") {
-                                try {
-                                    const textData = decoder.decode(record.data);
-                                    let parsed;
-                                    try { parsed = JSON.parse(textData); } catch(e) { parsed = textData.split('\n').map(s => s.trim()).filter(Boolean); }
+                  function openStampModal() { playSound('click'); document.getElementById('stampModal').classList.add('open'); }
+                  function closeStampModal() { playSound('click'); document.getElementById('stampModal').classList.remove('open'); }
+                  function openInfoModal() { playSound('click'); document.getElementById('infoModal').classList.add('open'); }
+                  function closeInfoModal() { playSound('click'); document.getElementById('infoModal').classList.remove('open'); }
 
-                                    if (parsed && typeof parsed === 'object' && parsed.games) {
-                                        gameDataList = parsed.games.map(g => ({
-                                            title: g.title || g.t || "名無しのゲーム",
-                                            playCount: g.playCount || g.p || 0,
-                                            totalMinutes: g.totalMinutes || g.m || 0,
-                                            completed: g.completed !== undefined ? g.completed : false
-                                        }));
-                                        if (parsed.history) loginHistory = parsed.history;
-                                    } else if (Array.isArray(parsed)) {
-                                        gameDataList = parsed.map(item => {
-                                            if (typeof item === 'object' && item !== null) {
-                                                return {
-                                                    title: item.title || item.t || "名無しのゲーム",
-                                                    playCount: item.playCount || item.p || 0,
-                                                    totalMinutes: item.totalMinutes || item.m || 0,
-                                                    completed: item.completed !== undefined ? item.completed : false
-                                                };
-                                            } else { return { title: String(item), playCount: 0, totalMinutes: 0, completed: false }; }
-                                        });
-                                    }
-                                    initDefaultSchedule();
-                                    updateDisplay();
-                                    saveLocalBackup();
-                                    statusEl.textContent = "✨ NFCからゲームデータとスタンプ累計を読み込みました！";
-                                    checkTodayStamp();
-                                } catch(err) {
-                                    playSound('error');
-                                    statusEl.textContent = "⚠️ データの解析に失敗しました";
-                                }
-                            }
-                        }
-                    };
-                } catch (e) { playSound('error'); statusEl.textContent = "❌ NFC読み込みエラー: " + e; }
-            }
+                  function openCertificateModal() {
+                      playSound('click');
+                      const modal = document.getElementById('certificateModal');
+                      const totalDays = loginHistory.length;
+                      let titleStr = "🟤 ブロンズの旅人";
+                      if(totalDays >= 50) titleStr = "🌟 プラチナの英雄";
+                      else if(totalDays >= 30) titleStr = "💎 ダイヤモンドの勇者";
+                      else if(totalDays >= 14) titleStr = "🔴 ルビーの戦士";
+                      else if(totalDays >= 7) titleStr = "🟡 ゴールドの冒険者";
+                      else if(totalDays >= 3) titleStr = "⚪ シルバーの剣士";
+                      document.getElementById('certRankDisplay').textContent = titleStr;
 
-            function removeGame(index, event) {
-                playSound('switch');
-                event.stopPropagation();
-                gameDataList.splice(index, 1);
-                initDefaultSchedule();
-                updateDisplay();
-                saveLocalBackup();
-            }
+                      let counts = { '🎃': 0, '⚔️': 0, '🛡️': 0 };
+                      loginHistory.forEach(h => { if(counts[h.stamp] !== undefined) counts[h.stamp]++; });
+                      document.getElementById('count-pumpkin').textContent = counts['🎃'];
+                      document.getElementById('count-sword').textContent = counts['⚔️'];
+                      document.getElementById('count-shield').textContent = counts['🛡️'];
+                      document.getElementById('count-scythe').textContent = Math.floor(totalDays / 7);
 
-            async function writeFullDataToNfc() {
-                playSound('click');
-                const statusEl = document.getElementById('statusLog');
-                if (!('NDEFReader' in window)) {
-                    playSound('error');
-                    statusEl.textContent = "⚠️ Web NFC非対応環境です";
-                    return;
-                }
-                try {
-                    const ndef = new NDEFReader();
-                    statusEl.textContent = "✍️ 【全データ書込】NFCタグにタッチしてください...";
-                    const nfcDataStr = generateFullNfcData();
-                    await ndef.write({ records: [ { recordType: "text", data: nfcDataStr } ] });
-                    playSound('success');
-                    statusEl.textContent = "🎉 タイトル・累計時間・スタンプ累計の書き込みに成功しました！";
-                } catch (e) { playSound('error'); statusEl.textContent = "❌ 書き込み失敗: " + e; }
-            }
+                      const gameListEl = document.getElementById('certGameList');
+                      gameListEl.innerHTML = '';
+                      if(gameDataList.length === 0) {
+                          gameListEl.innerHTML = '<li style="justify-content:center; color:var(--text-sub);">記録がありません</li>';
+                      } else {
+                          gameDataList.forEach(g => {
+                              const totalMins = g.totalMinutes || 0;
+                              const hours = Math.floor(totalMins / 60);
+                              const mins = totalMins % 60;
+                              let timeStr = "";
+                              if (hours > 0) timeStr += `${hours}時間`;
+                              if (mins > 0 || hours === 0) timeStr += `${mins}分`;
+                              gameListEl.innerHTML += `<li><span style="font-weight:bold; color:var(--gold-light);">${g.title}</span><span>${timeStr}</span></li>`;
+                          });
+                      }
 
-            function openStampModal() { playSound('click'); document.getElementById('stampModal').classList.add('open'); }
-            function closeStampModal() { playSound('click'); document.getElementById('stampModal').classList.remove('open'); }
-            function openInfoModal() { playSound('click'); document.getElementById('infoModal').classList.add('open'); }
-            function closeInfoModal() { playSound('click'); document.getElementById('infoModal').classList.remove('open'); }
+                      const historyListEl = document.getElementById('historyLogList');
+                      historyListEl.innerHTML = '';
+                      if (loginHistory.length === 0) {
+                          historyListEl.innerHTML = '<div class="empty-text" style="padding: 2px;">（記録がありません）</div>';
+                      } else {
+                          [...loginHistory].reverse().forEach(item => {
+                              const li = document.createElement('li');
+                              li.className = 'history-item';
+                              li.innerHTML = `<span>📅 ${item.date}</span><span style="color:var(--gold-light);">獲得: ${item.stamp}</span>`;
+                              historyListEl.appendChild(li);
+                          });
+                      }
+                      modal.classList.add('open');
+                  }
 
-            function openCertificateModal() {
-                playSound('click');
-                const modal = document.getElementById('certificateModal');
-                const totalDays = loginHistory.length;
-                let titleStr = "🟤 ブロンズの旅人";
-                if(totalDays >= 50) titleStr = "🌟 プラチナの英雄";
-                else if(totalDays >= 30) titleStr = "💎 ダイヤモンドの勇者";
-                else if(totalDays >= 14) titleStr = "🔴 ルビーの戦士";
-                else if(totalDays >= 7) titleStr = "🟡 ゴールドの冒険者";
-                else if(totalDays >= 3) titleStr = "⚪ シルバーの剣士";
-                document.getElementById('certRankDisplay').textContent = titleStr;
+                  function closeCertificateModal() { playSound('click'); document.getElementById('certificateModal').classList.remove('open'); }
 
-                let counts = { '🎃': 0, '⚔️': 0, '🛡️': 0 };
-                loginHistory.forEach(h => { if(counts[h.stamp] !== undefined) counts[h.stamp]++; });
-                document.getElementById('count-pumpkin').textContent = counts['🎃'];
-                document.getElementById('count-sword').textContent = counts['⚔️'];
-                document.getElementById('count-shield').textContent = counts['🛡️'];
-                document.getElementById('count-scythe').textContent = Math.floor(totalDays / 7);
+                  function checkTodayStamp() {
+                      const today = getTodayStr();
+                      if (!loginHistory.some(item => item.date === today)) setTimeout(() => openStampModal(), 500);
+                  }
 
-                const gameListEl = document.getElementById('certGameList');
-                gameListEl.innerHTML = '';
-                if(gameDataList.length === 0) {
-                    gameListEl.innerHTML = '<li style="justify-content:center; color:var(--text-sub);">記録がありません</li>';
-                } else {
-                    gameDataList.forEach(g => {
-                        const totalMins = g.totalMinutes || 0;
-                        const hours = Math.floor(totalMins / 60);
-                        const mins = totalMins % 60;
-                        let timeStr = "";
-                        if (hours > 0) timeStr += `${hours}時間`;
-                        if (mins > 0 || hours === 0) timeStr += `${mins}分`;
-                        gameListEl.innerHTML += `<li><span style="font-weight:bold; color:var(--gold-light);">${g.title}</span><span>${timeStr}</span></li>`;
-                    });
-                }
+                  function selectStamp(stampSymbol) {
+                      playSound('success');
+                      const today = getTodayStr();
+                      const existingIndex = loginHistory.findIndex(item => item.date === today);
+                      if (existingIndex >= 0) loginHistory[existingIndex].stamp = stampSymbol;
+                      else loginHistory.push({ date: today, stamp: stampSymbol });
+                      closeStampModal();
+                      updateDisplay();
+                      saveLocalBackup();
+                      document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！`;
+                  }
 
-                const historyListEl = document.getElementById('historyLogList');
-                historyListEl.innerHTML = '';
-                if (loginHistory.length === 0) {
-                    historyListEl.innerHTML = '<div class="empty-text" style="padding: 2px;">（記録がありません）</div>';
-                } else {
-                    [...loginHistory].reverse().forEach(item => {
-                        const li = document.createElement('li');
-                        li.className = 'history-item';
-                        li.innerHTML = `<span>📅 ${item.date}</span><span style="color:var(--gold-light);">獲得: ${item.stamp}</span>`;
-                        historyListEl.appendChild(li);
-                    });
-                }
-                modal.classList.add('open');
-            }
+                  function saveLocalBackup() {
+                      const data = {
+                          games: gameDataList,
+                          dailySchedules: dailySchedules,
+                          dailyGoals: dailyGoals,
+                          history: loginHistory
+                      };
+                      localStorage.setItem('zelda_game_data', JSON.stringify(data));
+                  }
 
-            function closeCertificateModal() { playSound('click'); document.getElementById('certificateModal').classList.remove('open'); }
+                  function updateHeaderDate() {
+                      const dateObj = new Date(currentDateStr);
+                      const m = dateObj.getMonth() + 1;
+                      const d = dateObj.getDate();
+                      const header = document.getElementById('blackboardHeader');
+                      if (currentBoardMode === 'schedule') {
+                          header.textContent = `🏫 ${m}月${d}日の作戦時間割`;
+                      } else {
+                          header.textContent = `🎯 ${m}月${d}日の簡易目標`;
+                      }
+                  }
 
-            function checkTodayStamp() {
-                const today = getTodayStr();
-                if (!loginHistory.some(item => item.date === today)) setTimeout(() => openStampModal(), 500);
-            }
+                  function toggleBoardMode() {
+                      playSound('switch');
+                      const scheduleList = document.getElementById('scheduleList');
+                      const goalContainer = document.getElementById('simpleGoalContainer');
 
-            function selectStamp(stampSymbol) {
-                playSound('success');
-                const today = getTodayStr();
-                const existingIndex = loginHistory.findIndex(item => item.date === today);
-                if (existingIndex >= 0) loginHistory[existingIndex].stamp = stampSymbol;
-                else loginHistory.push({ date: today, stamp: stampSymbol });
-                closeStampModal();
-                updateDisplay();
-                saveLocalBackup();
-                document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！`;
-            }
+                      if (currentBoardMode === 'schedule') {
+                          currentBoardMode = 'goal';
+                          scheduleList.style.display = 'none';
+                          goalContainer.classList.add('active');
+                          renderSimpleGoals();
+                      } else {
+                          currentBoardMode = 'schedule';
+                          goalContainer.classList.remove('active');
+                          scheduleList.style.display = 'block';
+                      }
+                      updateHeaderDate();
+                  }
 
-            function saveLocalBackup() {
-                const data = {
-                    games: gameDataList,
-                    dailySchedules: dailySchedules,
-                    dailyGoals: dailyGoals,
-                    history: loginHistory
-                };
-                localStorage.setItem('zelda_game_data', JSON.stringify(data));
-            }
+                  function addSimpleGoal() {
+                      if (simpleGoalsData.length >= 5) {
+                          playSound('error');
+                          document.getElementById('statusLog').textContent = "⚠️ 目標は最大5つまでです！";
+                          return;
+                      }
+                      playSound('click');
+                      simpleGoalsData.push({ title: '', h: 0, m: 30, detail: '' });
+                      saveLocalBackup();
+                      renderSimpleGoals();
+                  }
 
-            function updateHeaderDate() {
-                const dateObj = new Date(currentDateStr);
-                const m = dateObj.getMonth() + 1;
-                const d = dateObj.getDate();
-                const header = document.getElementById('blackboardHeader');
-                if (currentBoardMode === 'schedule') {
-                    header.textContent = `🏫 ${m}月${d}日の作戦時間割`;
-                } else {
-                    header.textContent = `🎯 ${m}月${d}日の簡易目標`;
-                }
-            }
+                  function updateGoal(idx, field, element) {
+                      let val = element.value;
+                      if (field === 'h' || field === 'm') val = parseInt(val) || 0;
+                      simpleGoalsData[idx][field] = val;
+                      element.setAttribute('value', val);
+                      saveLocalBackup();
+                  }
 
-            function toggleBoardMode() {
-                playSound('switch');
-                const scheduleList = document.getElementById('scheduleList');
-                const goalContainer = document.getElementById('simpleGoalContainer');
+                  function selectGoalPreset(idx, titleVal) {
+                      if(!titleVal) return;
+                      playSound('switch');
+                      simpleGoalsData[idx].title = titleVal;
+                      saveLocalBackup();
+                      renderSimpleGoals();
+                  }
 
-                if (currentBoardMode === 'schedule') {
-                    currentBoardMode = 'goal';
-                    scheduleList.style.display = 'none';
-                    goalContainer.classList.add('active');
-                    renderSimpleGoals();
-                } else {
-                    currentBoardMode = 'schedule';
-                    goalContainer.classList.remove('active');
-                    scheduleList.style.display = 'block';
-                }
-                updateHeaderDate();
-            }
+                  function removeSimpleGoal(idx) {
+                      playSound('switch');
+                      simpleGoalsData.splice(idx, 1);
+                      saveLocalBackup();
+                      renderSimpleGoals();
+                  }
 
-            function addSimpleGoal() {
-                if (simpleGoalsData.length >= 5) {
-                    playSound('error');
-                    document.getElementById('statusLog').textContent = "⚠️ 目標は最大5つまでです！";
-                    return;
-                }
-                playSound('click');
-                simpleGoalsData.push({ title: '', h: 0, m: 30, detail: '' });
-                saveLocalBackup();
-                renderSimpleGoals();
-            }
+                  function renderSimpleGoals() {
+                      const listEl = document.getElementById('simpleGoalList');
+                      const addBtn = document.getElementById('addSimpleGoalBtn');
+                      listEl.innerHTML = '';
 
-            function updateGoal(idx, field, element) {
-                let val = element.value;
-                if (field === 'h' || field === 'm') val = parseInt(val) || 0;
-                simpleGoalsData[idx][field] = val;
-                element.setAttribute('value', val);
-                saveLocalBackup();
-            }
+                      const placeholders = [
+                          { t: "例: パンプキン戦士のコンボ考案", d: "例: スケルトン軍団を相手にした立ち回りを中心に" },
+                          { t: "例: パルクールアクションの練習", d: "例: 都市部の屋上を想定して動きを確認" },
+                          { t: "例: スケルトンキング討伐戦", d: "例: 敵の第二形態の攻撃パターンを覚える" },
+                          { t: "例: 変身シーンの構想まとめ", d: "例: 仮面ライダーJのような巨大化を取り入れるか？" },
+                          { t: "例: 剣劇バトルのスクリプト化", d: "例: 鍔迫り合いの描写を詳細に書く" }
+                      ];
 
-            function selectGoalPreset(idx, titleVal) {
-                if(!titleVal) return;
-                playSound('switch');
-                simpleGoalsData[idx].title = titleVal;
-                saveLocalBackup();
-                renderSimpleGoals();
-            }
+                      if (simpleGoalsData.length === 0) {
+                          listEl.innerHTML = '<div class="empty-text" style="flex:1; display:flex; align-items:center; justify-content:center;">（目標がありません。「＋ 新しい目標を追加」を押してください）</div>';
+                      }
 
-            function removeSimpleGoal(idx) {
-                playSound('switch');
-                simpleGoalsData.splice(idx, 1);
-                saveLocalBackup();
-                renderSimpleGoals();
-            }
+                      let gameOptions = '<option value="">🎮 所持ゲームから選択...</option>';
+                      gameDataList.forEach(g => {
+                          gameOptions += `<option value="${g.title}">${g.title}</option>`;
+                      });
 
-            function renderSimpleGoals() {
-                const listEl = document.getElementById('simpleGoalList');
-                const addBtn = document.getElementById('addSimpleGoalBtn');
-                listEl.innerHTML = '';
+                      simpleGoalsData.forEach((goal, idx) => {
+                          const ph = placeholders[idx % placeholders.length];
+                          const card = document.createElement('div');
+                          card.className = 'goal-card';
+                          card.innerHTML = `
+                              <div class="goal-main-row">
+                                  <input type="text" class="goal-title-input" placeholder="${ph.t}" value="${goal.title}" onchange="updateGoal(${idx}, 'title', this)" oninput="this.setAttribute('value', this.value)">
+                                  ${gameDataList.length > 0 ? `<select class="goal-preset-select" onchange="selectGoalPreset(${idx}, this.value)">${gameOptions}</select>` : ''}
+                                  <div class="goal-time-box">
+                                      <input type="number" class="goal-time-input" min="0" max="23" value="${goal.h}" onchange="updateGoal(${idx}, 'h', this)" oninput="this.setAttribute('value', this.value)"> H
+                                      <input type="number" class="goal-time-input" min="0" max="59" value="${goal.m}" onchange="updateGoal(${idx}, 'm', this)" oninput="this.setAttribute('value', this.value)"> M
+                                  </div>
+                              </div>
+                              <input type="text" class="goal-detail-input" placeholder="${ph.d}" value="${goal.detail}" onchange="updateGoal(${idx}, 'detail', this)" oninput="this.setAttribute('value', this.value)">
+                              <button class="goal-delete-btn" onclick="removeSimpleGoal(${idx})" title="削除">×</button>
+                          `;
+                          listEl.appendChild(card);
+                      });
 
-                const placeholders = [
-                    { t: "例: パンプキン戦士のコンボ考案", d: "例: スケルトン軍団を相手にした立ち回りを中心に" },
-                    { t: "例: パルクールアクションの練習", d: "例: 都市部の屋上を想定して動きを確認" },
-                    { t: "例: スケルトンキング討伐戦", d: "例: 敵の第二形態の攻撃パターンを覚える" },
-                    { t: "例: 変身シーンの構想まとめ", d: "例: 仮面ライダーJのような巨大化を取り入れるか？" },
-                    { t: "例: 剣劇バトルのスクリプト化", d: "例: 鍔迫り合いの描写を詳細に書く" }
-                ];
+                      addBtn.style.display = simpleGoalsData.length >= 5 ? 'none' : 'block';
+                  }
 
-                if (simpleGoalsData.length === 0) {
-                    listEl.innerHTML = '<div class="empty-text" style="flex:1; display:flex; align-items:center; justify-content:center;">（目標がありません。「＋ 新しい目標を追加」を押してください）</div>';
-                }
+                  function updateDisplay() {
+                      updateHeaderDate();
 
-                let gameOptions = '<option value="">🎮 所持ゲームから選択...</option>';
-                gameDataList.forEach(g => {
-                    gameOptions += `<option value="${g.title}">${g.title}</option>`;
-                });
+                      const listEl = document.getElementById('lineupList');
+                      listEl.innerHTML = '';
+                      if (gameDataList.length === 0) {
+                          listEl.innerHTML = '<div class="empty-text">（ゲームが登録されていません。「NFC読み込み」または手動で追加してください）</div>';
+                      } else {
+                          gameDataList.forEach((g, idx) => {
+                              const totalMins = g.totalMinutes || 0;
+                              let timeBadge = totalMins > 0 ? ` (累計${Math.floor(totalMins/60)}h${totalMins%60}m)` : '';
+                              const completedClass = g.completed ? 'completed' : '';
+                              const li = document.createElement('li');
+                              li.className = `zelda-row ${completedClass}`;
+                              li.onclick = () => toggleComplete(idx);
+                              li.innerHTML = `
+                                  <div>
+                                      <div class="zelda-title-text" style="font-weight:bold; color:var(--gold-light);">${g.title}</div>
+                                      <div style="font-size:0.75rem; color:var(--text-sub);">状態: ${g.completed ? '【クリア/達成】' : '進行中'} ${timeBadge}</div>
+                                  </div>
+                                  <span style="color:#b86b6b; cursor:pointer; font-size:0.8rem; padding:5px;" onclick="removeGame(${idx}, event)">[削除]</span>
+                              `;
+                              listEl.appendChild(li);
+                          });
+                      }
 
-                simpleGoalsData.forEach((goal, idx) => {
-                    const ph = placeholders[idx % placeholders.length];
-                    const card = document.createElement('div');
-                    card.className = 'goal-card';
-                    card.innerHTML = `
-                        <div class="goal-main-row">
-                            <input type="text" class="goal-title-input" placeholder="${ph.t}" value="${goal.title}" onchange="updateGoal(${idx}, 'title', this)" oninput="this.setAttribute('value', this.value)">
-                            ${gameDataList.length > 0 ? `<select class="goal-preset-select" onchange="selectGoalPreset(${idx}, this.value)">${gameOptions}</select>` : ''}
-                            <div class="goal-time-box">
-                                <input type="number" class="goal-time-input" min="0" max="23" value="${goal.h}" onchange="updateGoal(${idx}, 'h', this)" oninput="this.setAttribute('value', this.value)"> H
-                                <input type="number" class="goal-time-input" min="0" max="59" value="${goal.m}" onchange="updateGoal(${idx}, 'm', this)" oninput="this.setAttribute('value', this.value)"> M
-                            </div>
-                        </div>
-                        <input type="text" class="goal-detail-input" placeholder="${ph.d}" value="${goal.detail}" onchange="updateGoal(${idx}, 'detail', this)" oninput="this.setAttribute('value', this.value)">
-                        <button class="goal-delete-btn" onclick="removeSimpleGoal(${idx})" title="削除">×</button>
-                    `;
-                    listEl.appendChild(card);
-                });
+                      const schedEl = document.getElementById('scheduleList');
+                      schedEl.innerHTML = '';
+                      let currentTotalMinutes = BASE_START_HOUR * 60 + BASE_START_MIN;
 
-                addBtn.style.display = simpleGoalsData.length >= 5 ? 'none' : 'block';
-            }
+                      scheduleAssignments.forEach((item, fIdx) => {
+                          const startMins = currentTotalMinutes;
+                          const durationMins = Math.round(item.duration * 60);
+                          const endMins = startMins + durationMins;
+                          currentTotalMinutes = endMins;
 
-            function updateDisplay() {
-                updateHeaderDate();
+                          const pad = (n) => String(n).padStart(2, '0');
+                          const timeStr = `${pad(Math.floor(startMins/60)%24)}:${pad(startMins%60)} - ${pad(Math.floor(endMins/60)%24)}:${pad(endMins%60)}`;
 
-                const listEl = document.getElementById('lineupList');
-                listEl.innerHTML = '';
-                if (gameDataList.length === 0) {
-                    listEl.innerHTML = '<div class="empty-text">（ゲームが登録されていません。「NFC読み込み」または手動で追加してください）</div>';
-                } else {
-                    gameDataList.forEach((g, idx) => {
-                        const totalMins = g.totalMinutes || 0;
-                        let timeBadge = totalMins > 0 ? ` (累計${Math.floor(totalMins/60)}h${totalMins%60}m)` : '';
-                        const completedClass = g.completed ? 'completed' : '';
-                        const li = document.createElement('li');
-                        li.className = `zelda-row ${completedClass}`;
-                        li.onclick = () => toggleComplete(idx);
-                        li.innerHTML = `
-                            <div>
-                                <div class="zelda-title-text" style="font-weight:bold; color:var(--gold-light);">${g.title}</div>
-                                <div style="font-size:0.75rem; color:var(--text-sub);">状態: ${g.completed ? '【クリア/達成】' : '進行中'} ${timeBadge}</div>
-                            </div>
-                            <span style="color:#b86b6b; cursor:pointer; font-size:0.8rem; padding:5px;" onclick="removeGame(${idx}, event)">[削除]</span>
-                        `;
-                        listEl.appendChild(li);
-                    });
-                }
+                          let gameOptsHtml = `<option value="-2" ${item.gameIndexVal === "-2" ? 'selected' : ''}>🍱 昼食・食事</option><option value="-1" ${item.gameIndexVal === "-1" ? 'selected' : ''}>🍵 休憩・自由時間</option>`;
+                          gameDataList.forEach((g, gIdx) => { gameOptsHtml += `<option value="${gIdx}" ${(String(gIdx) === item.gameIndexVal) ? 'selected' : ''}>🎮 ${g.title}</option>`; });
 
-                const schedEl = document.getElementById('scheduleList');
-                schedEl.innerHTML = '';
-                let currentTotalMinutes = BASE_START_HOUR * 60 + BASE_START_MIN;
+                          let durOptsHtml = '';
+                          durationOptions.forEach((opt) => { durOptsHtml += `<option value="${opt.value}" ${Math.abs(opt.value - item.duration) < 0.001 ? 'selected' : ''}>${opt.label}</option>`; });
 
-                scheduleAssignments.forEach((item, fIdx) => {
-                    const startMins = currentTotalMinutes;
-                    const durationMins = Math.round(item.duration * 60);
-                    const endMins = startMins + durationMins;
-                    currentTotalMinutes = endMins;
+                          const li = document.createElement('li');
+                          li.className = 'chalk-row';
+                          li.innerHTML = `
+                              <span class="time-badge">${timeStr}</span>
+                              <div class="chalk-controls">
+                                  <select class="chalk-select game-select" onchange="changeScheduleGame(${fIdx}, this.value)">${gameOptsHtml}</select>
+                                  <select class="chalk-select" onchange="changeScheduleDuration(${fIdx}, this.value)">${durOptsHtml}</select>
+                              </div>
+                          `;
+                          schedEl.appendChild(li);
+                      });
 
-                    const pad = (n) => String(n).padStart(2, '0');
-                    const timeStr = `${pad(Math.floor(startMins/60)%24)}:${pad(startMins%60)} - ${pad(Math.floor(endMins/60)%24)}:${pad(endMins%60)}`;
+                      if (currentBoardMode === 'goal') {
+                          renderSimpleGoals();
+                      }
 
-                    let gameOptsHtml = `<option value="-2" ${item.gameIndexVal === "-2" ? 'selected' : ''}>🍱 昼食・食事</option><option value="-1" ${item.gameIndexVal === "-1" ? 'selected' : ''}>🍵 休憩・自由時間</option>`;
-                    gameDataList.forEach((g, gIdx) => { gameOptsHtml += `<option value="${gIdx}" ${(String(gIdx) === item.gameIndexVal) ? 'selected' : ''}>🎮 ${g.title}</option>`; });
+                      const totalCount = loginHistory.length;
+                      for (let i = 0; i < 6; i++) {
+                          const slot = document.getElementById(`slot-${i}`);
+                          if (i < totalCount % 7 || (totalCount > 0 && totalCount % 7 === 0)) {
+                              const stampIndex = totalCount - 1 - ((totalCount - 1) % 7) + i;
+                              if(loginHistory[stampIndex]) { slot.classList.add('active'); slot.textContent = loginHistory[stampIndex].stamp; }
+                          } else { slot.classList.remove('active'); slot.textContent = i + 1; }
+                      }
 
-                    let durOptsHtml = '';
-                    durationOptions.forEach((opt) => { durOptsHtml += `<option value="${opt.value}" ${Math.abs(opt.value - item.duration) < 0.001 ? 'selected' : ''}>${opt.label}</option>`; });
+                      const bonusSlot = document.getElementById('slot-6');
+                      if (totalCount > 0 && totalCount % 7 === 0) { bonusSlot.classList.add('active'); bonusSlot.textContent = '🪎'; }
+                      else { bonusSlot.classList.remove('active'); bonusSlot.textContent = '🪎'; }
+                  }
 
-                    const li = document.createElement('li');
-                    li.className = 'chalk-row';
-                    li.innerHTML = `
-                        <span class="time-badge">${timeStr}</span>
-                        <div class="chalk-controls">
-                            <select class="chalk-select game-select" onchange="changeScheduleGame(${fIdx}, this.value)">${gameOptsHtml}</select>
-                            <select class="chalk-select" onchange="changeScheduleDuration(${fIdx}, this.value)">${durOptsHtml}</select>
-                        </div>
-                    `;
-                    schedEl.appendChild(li);
-                });
+                  function exportScheduleJson() {
+                      playSound('click');
+                      const exportData = JSON.stringify(dailySchedules, null, 2);
+                      const blob = new Blob([exportData], { type: 'application/json' });
+                      const url = URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `冒険カレンダー作戦書_${new Date().toISOString().slice(0,10)}.json`;
+                      link.click();
+                      URL.revokeObjectURL(url);
+                      playSound('success');
+                      document.getElementById('statusLog').textContent = "📤 カレンダーの作戦データをJSONで保存しました！";
+                  }
 
-                if (currentBoardMode === 'goal') {
-                    renderSimpleGoals();
-                }
-
-                const totalCount = loginHistory.length;
-                for (let i = 0; i < 6; i++) {
-                    const slot = document.getElementById(`slot-${i}`);
-                    if (i < totalCount % 7 || (totalCount > 0 && totalCount % 7 === 0)) {
-                        const stampIndex = totalCount - 1 - ((totalCount - 1) % 7) + i;
-                        if(loginHistory[stampIndex]) { slot.classList.add('active'); slot.textContent = loginHistory[stampIndex].stamp; }
-                    } else { slot.classList.remove('active'); slot.textContent = i + 1; }
-                }
-
-                const bonusSlot = document.getElementById('slot-6');
-                if (totalCount > 0 && totalCount % 7 === 0) { bonusSlot.classList.add('active'); bonusSlot.textContent = '🪎'; }
-                else { bonusSlot.classList.remove('active'); bonusSlot.textContent = '🪎'; }
-            }
-
-            function exportScheduleJson() {
-                playSound('click');
-                const exportData = JSON.stringify(dailySchedules, null, 2);
-                const blob = new Blob([exportData], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `冒険カレンダー作戦書_${new Date().toISOString().slice(0,10)}.json`;
-                link.click();
-                URL.revokeObjectURL(url);
-                playSound('success');
-                document.getElementById('statusLog').textContent = "📤 カレンダーの作戦データをJSONで保存しました！";
-            }
-
-            function importScheduleJson(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const data = JSON.parse(e.target.result);
-                        dailySchedules = Object.assign(dailySchedules, data);
-                        onDateChange();
-                        playSound('success');
-                        document.getElementById('statusLog').textContent = "📥 カレンダーの作戦データを読み込みました！";
-                    } catch(err) {
-                        playSound('error');
-                        document.getElementById('statusLog').textContent = "⚠️ JSONファイルの形式が正しくありません";
-                        console.error(err);
-                    }
-                    event.target.value = '';
-                };
-                reader.readAsText(file);
-            }
+                  function importScheduleJson(event) {
+                      const file = event.target.files[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = function(e) {
+                          try {
+                              const data = JSON.parse(e.target.result);
+                              dailySchedules = Object.assign(dailySchedules, data);
+                              onDateChange();
+                              playSound('success');
+                              document.getElementById('statusLog').textContent = "📥 カレンダーの作戦データを読み込みました！";
+                          } catch(err) {
+                              playSound('error');
+                              document.getElementById('statusLog').textContent = "⚠️ JSONファイルの形式が正しくありません";
+                              console.error(err);
+                          }
+                          event.target.value = '';
+                      };
+                      reader.readAsText(file);
+                  }
     </script>
   </body>
 </html>
