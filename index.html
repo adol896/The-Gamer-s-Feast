@@ -706,7 +706,7 @@
             </label>
 
             <button class="nfc-write-btn" onclick="writeFullDataToNfc()">
-              💾 タイトル・累計時間・スタンプ累計をNFC書き込み
+              💾 タイトル・累計時間・今日の日付と累計スタンプをNFC書き込み
             </button>
             <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
           </div>
@@ -909,8 +909,8 @@
 
           <h3>4. NFCカードでの連携機能（全データ保存）</h3>
           <p>
-            「タイトル・累計時間・スタンプ累計をNFC書き込み」を押してNFCカードにかざすと、ゲーム情報と
-            <b>獲得スタンプの累計・履歴</b>
+            「タイトル・累計時間・今日の日付と累計スタンプをNFC書き込み」を押してNFCカードにかざすと、ゲーム情報と
+            <b>今日の日付・獲得スタンプの累計</b>
             がカードへ丸ごと書き込まれます。
           </p>
           <div class="notice-box">
@@ -1339,14 +1339,19 @@
       }
 
       function generateFullNfcData() {
+          let counts = { '🎃': 0, '⚔️': 0, '🛡️': 0 };
+          loginHistory.forEach(h => {
+              const s = h.stamp || h.s;
+              if (counts[s] !== undefined) counts[s]++;
+          });
+
           const dataToSave = {
+              date: getTodayStr(),
+              totalStamps: loginHistory.length,
+              stampCounts: counts,
               games: gameDataList.map(g => ({
                   t: g.title,
                   m: g.totalMinutes || 0
-              })),
-              history: loginHistory.map(h => ({
-                  d: h.date,
-                  s: h.stamp
               }))
           };
           return JSON.stringify(dataToSave);
@@ -1381,7 +1386,29 @@
                                       totalMinutes: g.totalMinutes || g.m || 0,
                                       completed: g.completed !== undefined ? g.completed : false
                                   }));
-                                  if (parsed.history && Array.isArray(parsed.history)) {
+
+                                  if (parsed.totalStamps !== undefined) {
+                                      const total = parsed.totalStamps || 0;
+                                      const lastDate = parsed.date || getTodayStr();
+                                      const counts = parsed.stampCounts || {};
+
+                                      loginHistory = [];
+                                      let pCount = counts['🎃'] || 0;
+                                      let sCount = counts['⚔️'] || 0;
+                                      let shCount = counts['🛡️'] || 0;
+
+                                      for (let i = 0; i < total; i++) {
+                                          let stamp = '🎃';
+                                          if (pCount > 0) { stamp = '🎃'; pCount--; }
+                                          else if (sCount > 0) { stamp = '⚔️'; sCount--; }
+                                          else if (shCount > 0) { stamp = '🛡️'; shCount--; }
+
+                                          loginHistory.push({
+                                              date: (i === total - 1) ? lastDate : `記録 ${i + 1}`,
+                                              stamp: stamp
+                                          });
+                                      }
+                                  } else if (parsed.history && Array.isArray(parsed.history)) {
                                       loginHistory = parsed.history.map(h => ({
                                           date: h.date || h.d || getTodayStr(),
                                           stamp: h.stamp || h.s || '🎃'
@@ -1402,7 +1429,7 @@
                               initDefaultSchedule();
                               updateDisplay();
                               saveLocalBackup();
-                              statusEl.textContent = "✨ NFCからゲームデータとスタンプ累計を読み込みました！";
+                              statusEl.textContent = "✨ NFCからゲームデータと今日の日付・スタンプ累計を読み込みました！";
                               checkTodayStamp();
                           } catch(err) {
                               playSound('error');
@@ -1437,7 +1464,7 @@
               const nfcDataStr = generateFullNfcData();
               await ndef.write({ records: [ { recordType: "text", data: nfcDataStr } ] });
               playSound('success');
-              statusEl.textContent = "🎉 タイトル・累計時間・スタンプ累計の書き込みに成功しました！";
+              statusEl.textContent = "🎉 タイトル・累計時間・今日の日付と累計スタンプの書き込みに成功しました！";
           } catch (e) { playSound('error'); statusEl.textContent = "❌ 書き込み失敗: " + e; }
       }
 
