@@ -4,184 +4,211 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>冒険の献立表 - インベントリ＆作戦黒板</title>
-    <!-- 画像出力用の外部ライブラリ (html2canvas) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
       :root {
-        --bg-color: #1a1612;
-        --panel-bg: #2d241b;
-        --panel-border: #8c7355;
-        --gold: #d4af37;
-        --gold-light: #f3e5ab;
-        --text-main: #f0e6d2;
-        --text-sub: #b3a48f;
+          --bg-color: #1a1612;
+          --panel-bg: #2d241b;
+          --panel-border: #8c7355;
+          --gold: #d4af37;
+          --gold-light: #f3e5ab;
+          --text-main: #f0e6d2;
+          --text-sub: #b3a48f;
 
-        --blackboard-bg: #1e3328;
-        --blackboard-border: #5a3a22;
-        --chalk-white: #ffffff;
-        --chalk-yellow: #f1c40f;
-        --neon-green: #39ff14;
+          --blackboard-bg: #1e3328;
+          --blackboard-border: #5a3a22;
+          --chalk-white: #ffffff;
+          --chalk-yellow: #f1c40f;
+          --neon-green: #39ff14;
 
-        --bg-gradient: radial-gradient(circle, #382c21 0%, #1a1612 100%);
+          --bg-gradient: radial-gradient(circle, #382c21 0%, #1a1612 100%);
       }
 
       /* ❄️ 氷雪テーマ */
       body.theme-snow {
-        --bg-color: #0b131a;
-        --panel-bg: #162436;
-        --panel-border: #569cd6;
-        --gold: #87ceeb;
-        --gold-light: #e0ffff;
-        --text-main: #e6f2ff;
-        --text-sub: #a9cce3;
+          --bg-color: #0b131a;
+          --panel-bg: #162436;
+          --panel-border: #569cd6;
+          --gold: #87ceeb;
+          --gold-light: #e0ffff;
+          --text-main: #e6f2ff;
+          --text-sub: #a9cce3;
 
-        --blackboard-bg: #101c29;
-        --blackboard-border: #2c4a6b;
-        --neon-green: #00ffff;
+          --blackboard-bg: #101c29;
+          --blackboard-border: #2c4a6b;
+          --neon-green: #00ffff;
 
-        --bg-gradient: radial-gradient(circle, #1a2a3a 0%, #0b131a 100%);
+          --bg-gradient: radial-gradient(circle, #1a2a3a 0%, #0b131a 100%);
       }
 
       /* 🌲 深森テーマ */
       body.theme-forest {
-        --bg-color: #0d1a0f;
-        --panel-bg: #1a2e1b;
-        --panel-border: #4caf50;
-        --gold: #8bc34a;
-        --gold-light: #dcedc8;
-        --text-main: #e8f5e9;
-        --text-sub: #a5d6a7;
+          --bg-color: #0d1a0f;
+          --panel-bg: #1a2e1b;
+          --panel-border: #4caf50;
+          --gold: #8bc34a;
+          --gold-light: #dcedc8;
+          --text-main: #e8f5e9;
+          --text-sub: #a5d6a7;
 
-        --blackboard-bg: #0b1a0e;
-        --blackboard-border: #2e5232;
-        --neon-green: #b2ff59;
+          --blackboard-bg: #0b1a0e;
+          --blackboard-border: #2e5232;
+          --neon-green: #b2ff59;
 
-        --bg-gradient: radial-gradient(circle, #1f3d23 0%, #0d1a0f 100%);
+          --bg-gradient: radial-gradient(circle, #1f3d23 0%, #0d1a0f 100%);
       }
 
       body {
-        background-color: var(--bg-color);
-        color: var(--text-main);
-        font-family: 'Georgia', 'Times New Roman', 'YuMincho', serif;
-        margin: 0;
-        padding: 0;
-        background-image: var(--bg-gradient);
-        min-height: 100vh;
-        transition: background 0.5s ease, color 0.5s ease;
+          background-color: var(--bg-color);
+          color: var(--text-main);
+          font-family: 'Georgia', 'Times New Roman', 'YuMincho', serif;
+          margin: 0;
+          padding: 0;
+          background-image: var(--bg-gradient);
+          min-height: 100vh;
+          transition: background 0.5s ease, color 0.5s ease;
       }
 
-      /* transform scaleを使って75%縮小 */
+      /* 🔍 zoomの代わりにtransform scaleを使って75%縮小 */
       .page-wrapper {
-        width: 133.333%; /* 100 / 0.75 */
-        transform: scale(0.75);
-        transform-origin: top left;
-        padding: 26.666px; /* 20px / 0.75 */
-        box-sizing: border-box;
+          width: 133.333%; /* 100 / 0.75 */
+          transform: scale(0.75);
+          transform-origin: top left;
+          padding: 26.666px; /* 20px / 0.75 */
+          box-sizing: border-box;
+      }
+
+      .zelda-container {
+          max-width: 680px;
+          margin: 0 auto;
+          background: var(--panel-bg);
+          border: 4px solid var(--panel-border);
+          border-radius: 12px;
+          box-shadow: 0 0 20px rgba(0,0,0,0.9), inset 0 0 15px rgba(0,0,0,0.6);
+          padding: 20px;
+          transition: background-color 0.5s ease, border-color 0.5s ease;
+      }
+
+      h1 {
+          text-align: center;
+          color: var(--gold);
+          font-size: 1.6rem;
+          letter-spacing: 2px;
+          margin-top: 0;
+          margin-bottom: 5px;
+          text-shadow: 2px 2px 4px #000;
+      }
+
+      .subtitle {
+          text-align: center;
+          color: var(--text-sub);
+          font-size: 0.85rem;
+          margin-bottom: 15px;
       }
 
       .theme-selector {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 15px;
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 15px;
       }
 
       .theme-selector select {
-        background: rgba(0, 0, 0, 0.4);
-        color: var(--gold-light);
-        border: 1px solid var(--panel-border);
-        padding: 6px 10px;
-        border-radius: 4px;
-        font-family: 'Georgia', serif;
-        font-size: 0.85rem;
-        cursor: pointer;
-        outline: none;
+          background: rgba(0, 0, 0, 0.4);
+          color: var(--gold-light);
+          border: 1px solid var(--panel-border);
+          padding: 6px 10px;
+          border-radius: 4px;
+          font-family: 'Georgia', serif;
+          font-size: 0.85rem;
+          cursor: pointer;
+          outline: none;
       }
 
       .action-panel {
-        background: rgba(0, 0, 0, 0.4);
-        border: 2px solid var(--panel-border);
-        border-radius: 8px;
-        padding: 12px;
-        margin-bottom: 20px;
+          background: rgba(0, 0, 0, 0.4);
+          border: 2px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 20px;
       }
 
       .input-row {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 10px;
-        align-items: center;
+          display: flex;
+          gap: 8px;
+          margin-bottom: 10px;
+          align-items: center;
       }
 
       .game-input {
-        flex: 1;
-        background: rgba(20, 15, 10, 0.8);
-        border: 1.5px solid var(--panel-border);
-        border-radius: 6px;
-        color: var(--gold-light);
-        padding: 9px 12px;
-        font-family: 'Georgia', serif;
-        font-size: 0.85rem;
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
+          flex: 1;
+          background: rgba(20, 15, 10, 0.8);
+          border: 1.5px solid var(--panel-border);
+          border-radius: 6px;
+          color: var(--gold-light);
+          padding: 9px 12px;
+          font-family: 'Georgia', serif;
+          font-size: 0.85rem;
+          outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
       }
 
       .game-input:focus {
-        border-color: var(--gold);
-        box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+          border-color: var(--gold);
+          box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
       }
 
       .game-input::placeholder {
-        color: var(--text-sub);
-        opacity: 0.6;
+          color: var(--text-sub);
+          opacity: 0.6;
       }
 
       .btn-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 10px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-bottom: 10px;
       }
 
       button {
-        background: linear-gradient(to bottom, #5c413b, #382c21);
-        color: var(--gold-light);
-        border: 2px solid var(--gold);
-        padding: 10px;
-        font-family: 'Georgia', serif;
-        font-weight: bold;
-        border-radius: 6px;
-        cursor: pointer;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.4);
-        transition: 0.2s;
-        font-size: 0.85rem;
-        white-space: nowrap;
+          background: linear-gradient(to bottom, #5c413b, #382c21);
+          color: var(--gold-light);
+          border: 2px solid var(--gold);
+          padding: 10px;
+          font-family: 'Georgia', serif;
+          font-weight: bold;
+          border-radius: 6px;
+          cursor: pointer;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+          transition: 0.2s;
+          font-size: 0.85rem;
+          white-space: nowrap;
       }
 
       button:hover {
-        background: linear-gradient(to bottom, #735a3e, #4a3b2c);
-        color: #fff;
-        border-color: #fff;
+          background: linear-gradient(to bottom, #735a3e, #4a3b2c);
+          color: #fff;
+          border-color: #fff;
       }
 
       button.add-btn {
-        background: linear-gradient(to bottom, #4a5c3b, #28351f);
-        border-color: #7db86b;
-        color: #d2f3bf;
-        padding: 9px 15px;
+          background: linear-gradient(to bottom, #4a5c3b, #28351f);
+          border-color: #7db86b;
+          color: #d2f3bf;
+          padding: 9px 15px;
       }
 
       button.mic-btn { background: linear-gradient(to bottom, #3b505c, #1f2c35); border-color: #6ba4b8; color: #bfe3f3; }
       button.mic-btn.listening {
-        background: linear-gradient(to bottom, #5c3b3b, #351f1f);
-        border-color: #ff3b3b;
-        color: #ffcccc;
-        animation: pulse-glow 1.5s infinite;
+          background: linear-gradient(to bottom, #5c3b3b, #351f1f);
+          border-color: #ff3b3b;
+          color: #ffcccc;
+          animation: pulse-glow 1.5s infinite;
       }
 
       @keyframes pulse-glow {
-        0% { box-shadow: 0 0 5px rgba(255, 59, 59, 0.4); }
-        50% { box-shadow: 0 0 15px rgba(255, 59, 59, 0.8); }
-        100% { box-shadow: 0 0 5px rgba(255, 59, 59, 0.4); }
+          0% { box-shadow: 0 0 5px rgba(255, 59, 59, 0.4); }
+          50% { box-shadow: 0 0 15px rgba(255, 59, 59, 0.8); }
+          100% { box-shadow: 0 0 5px rgba(255, 59, 59, 0.4); }
       }
 
       button.nfc-read-btn { background: linear-gradient(to bottom, #3b5c42, #1f3524); border-color: #6bb87d; color: #bfe3cf; }
@@ -190,488 +217,495 @@
       button.export-btn { background: linear-gradient(to bottom, #5c413b, #35221f); border-color: #b8716b; color: #f3c2bf; grid-column: span 2; }
 
       .section-title {
-        color: var(--gold);
-        font-size: 0.95rem;
-        margin: 15px 0 8px 0;
-        border-bottom: 1px solid var(--panel-border);
-        padding-bottom: 5px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+          color: var(--gold);
+          font-size: 0.95rem;
+          margin: 15px 0 8px 0;
+          border-bottom: 1px solid var(--panel-border);
+          padding-bottom: 5px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
       }
 
       .lineup-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
 
       .zelda-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: rgba(30, 24, 18, 0.8);
-        border-left: 4px solid var(--gold);
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: 0.2s;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: rgba(30, 24, 18, 0.8);
+          border-left: 4px solid var(--gold);
+          padding: 10px 12px;
+          margin-bottom: 8px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: 0.2s;
       }
 
       .zelda-row:hover { background: rgba(50, 40, 30, 0.9); }
       .zelda-row.completed { opacity: 0.7; border-left-color: var(--neon-green); }
 
       .blackboard-area {
-        background: var(--blackboard-bg);
-        border: 6px solid var(--blackboard-border);
-        border-radius: 6px;
-        padding: 15px;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-        transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
+          background: var(--blackboard-bg);
+          border: 6px solid var(--blackboard-border);
+          border-radius: 6px;
+          padding: 15px;
+          box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+          transition: all 0.3s ease;
+          display: flex;
+          flex-direction: column;
       }
 
-      /* 画像エクスポート用の表示調整 */
       .blackboard-area.export-clean {
-        border-color: transparent !important;
-        box-shadow: none !important;
+          border-color: transparent !important;
+          box-shadow: none !important;
       }
 
       .blackboard-area.export-clean .chalk-row {
-        background: transparent !important;
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
+          background: transparent !important;
+          border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
       }
 
       .blackboard-area.export-clean .chalk-select {
-        background: transparent !important;
-        border: none !important;
-        appearance: none !important;
-        -webkit-appearance: none !important;
-        -moz-appearance: none !important;
-        color: var(--chalk-white) !important;
-        font-weight: bold;
-        padding: 0 !important;
+          background: transparent !important;
+          border: none !important;
+          appearance: none !important;
+          -webkit-appearance: none !important;
+          -moz-appearance: none !important;
+          color: var(--chalk-white) !important;
+          font-weight: bold;
+          padding: 0 !important;
       }
 
       .blackboard-area.export-clean .time-badge {
-        border: none !important;
-        box-shadow: none !important;
-        text-shadow: none !important;
+          border: none !important;
+          box-shadow: none !important;
+          text-shadow: none !important;
       }
 
       .blackboard-area.export-clean .goal-card {
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        background: transparent !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          background: transparent !important;
       }
       .blackboard-area.export-clean .goal-title-input,
       .blackboard-area.export-clean .goal-time-input,
       .blackboard-area.export-clean .goal-detail-input {
-        border: none !important;
-        background: transparent !important;
+          border: none !important;
+          background: transparent !important;
       }
       .blackboard-area.export-clean .goal-delete-btn,
       .blackboard-area.export-clean .goal-preset-select,
       .blackboard-area.export-clean #addSimpleGoalBtn {
-        display: none !important;
+          display: none !important;
+      }
+
+      .blackboard-area.export-clean .goal-time-box {
+          transform: translateX(-40px);
+      }
+
+      .blackboard-area.export-clean .chalk-controls {
+          transform: translateX(-45px);
       }
       
       .blackboard-header {
-        color: var(--chalk-white);
-        font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
-        font-weight: bold;
-        font-size: 1rem;
-        margin-bottom: 12px;
-        border-bottom: 2px dashed rgba(255, 255, 255, 0.4);
-        padding-bottom: 5px;
-        text-align: center;
-        letter-spacing: 1px;
+          color: var(--chalk-white);
+          font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+          font-weight: bold;
+          font-size: 1rem;
+          margin-bottom: 12px;
+          border-bottom: 2px dashed rgba(255, 255, 255, 0.4);
+          padding-bottom: 5px;
+          text-align: center;
+          letter-spacing: 1px;
       }
 
       .schedule-list { list-style: none; padding: 0; margin: 0; }
 
       .chalk-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        background: rgba(0, 0, 0, 0.3);
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
-        padding: 8px 10px;
-        margin-bottom: 6px;
-        border-radius: 4px;
-        font-family: sans-serif;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          background: rgba(0, 0, 0, 0.3);
+          border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+          padding: 8px 10px;
+          margin-bottom: 6px;
+          border-radius: 4px;
+          font-family: sans-serif;
       }
 
       .time-badge {
-        background-color: transparent;
-        color: var(--neon-green);
-        border: 1px solid var(--neon-green);
-        font-size: 0.75rem;
-        font-weight: bold;
-        padding: 3px 6px;
-        border-radius: 3px;
-        box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
-        white-space: nowrap;
-        text-shadow: 0 0 2px var(--neon-green);
-        min-width: 130px;
-        text-align: center;
+          background-color: transparent;
+          color: var(--neon-green);
+          border: 1px solid var(--neon-green);
+          font-size: 0.75rem;
+          font-weight: bold;
+          padding: 3px 6px;
+          border-radius: 3px;
+          box-shadow: 0 0 5px rgba(57, 255, 20, 0.4);
+          white-space: nowrap;
+          text-shadow: 0 0 2px var(--neon-green);
+          min-width: 130px;
+          text-align: center;
       }
 
       .chalk-controls {
-        display: flex;
-        gap: 8px;
-        flex: 1;
-        justify-content: flex-end;
+          display: flex;
+          gap: 8px;
+          flex: 1;
+          justify-content: flex-end;
       }
 
       .chalk-select {
-        background: #12221b;
-        color: var(--chalk-white);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        padding: 5px 8px;
-        border-radius: 4px;
-        font-size: 0.82rem;
-        font-family: sans-serif;
-        cursor: pointer;
-        outline: none;
+          background: #12221b;
+          color: var(--chalk-white);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          padding: 5px 8px;
+          border-radius: 4px;
+          font-size: 0.82rem;
+          font-family: sans-serif;
+          cursor: pointer;
+          outline: none;
       }
 
       .chalk-select.game-select {
-        flex: 1;
-        max-width: 260px;
+          flex: 1;
+          max-width: 260px;
       }
 
       /* --- 簡易目標モード用スタイル --- */
       .simple-goal-container {
-        display: none;
-        flex-direction: column;
-        gap: 10px;
-        min-height: 250px;
-        flex: 1;
+          display: none;
+          flex-direction: column;
+          gap: 10px;
+          min-height: 250px;
+          flex: 1;
       }
       .simple-goal-container.active { display: flex; }
 
       .goal-card {
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px dashed rgba(255, 255, 255, 0.3);
-        border-radius: 6px;
-        padding: 10px 15px;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        position: relative;
-        transition: all 0.3s;
+          background: rgba(0, 0, 0, 0.3);
+          border: 1px dashed rgba(255, 255, 255, 0.3);
+          border-radius: 6px;
+          padding: 10px 15px;
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          position: relative;
+          transition: all 0.3s;
       }
       .goal-main-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 5px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 5px;
       }
       .goal-title-input {
-        flex: 1;
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: var(--gold-light);
-        background: transparent;
-        border: 1px solid transparent;
-        border-bottom: 1px solid rgba(255,255,255,0.2);
-        font-family: 'Georgia', serif;
-        outline: none;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+          flex: 1;
+          font-size: 1.1rem;
+          font-weight: bold;
+          color: var(--gold-light);
+          background: transparent;
+          border: 1px solid transparent;
+          border-bottom: 1px solid rgba(255,255,255,0.2);
+          font-family: 'Georgia', serif;
+          outline: none;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
       }
       .goal-title-input::placeholder { color: rgba(255,255,255,0.3); font-size: 0.9rem; font-weight: normal; }
       .goal-preset-select {
-        background: #12221b;
-        color: var(--gold-light);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 4px;
-        padding: 3px 6px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        outline: none;
-        max-width: 140px;
+          background: #12221b;
+          color: var(--gold-light);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 4px;
+          padding: 3px 6px;
+          font-size: 0.75rem;
+          cursor: pointer;
+          outline: none;
+          max-width: 140px;
       }
       .goal-time-box {
-        display: flex;
-        align-items: baseline;
-        gap: 3px;
-        color: var(--gold);
-        font-size: 1rem;
-        font-weight: bold;
-        white-space: nowrap;
+          display: flex;
+          align-items: baseline;
+          gap: 3px;
+          color: var(--gold);
+          font-size: 1rem;
+          font-weight: bold;
+          white-space: nowrap;
       }
       .goal-time-input {
-        width: 30px;
-        font-size: 1.1rem;
-        font-weight: bold;
-        text-align: right;
-        background: transparent;
-        border: 1px solid transparent;
-        border-bottom: 1px solid rgba(255,255,255,0.2);
-        color: var(--chalk-white);
-        outline: none;
+          width: 30px;
+          font-size: 1.1rem;
+          font-weight: bold;
+          text-align: right;
+          background: transparent;
+          border: 1px solid transparent;
+          border-bottom: 1px solid rgba(255,255,255,0.2);
+          color: var(--chalk-white);
+          outline: none;
       }
       .goal-detail-input {
-        width: 100%;
-        font-size: 0.85rem;
-        color: var(--text-sub);
-        background: transparent;
-        border: 1px solid transparent;
-        border-bottom: 1px dashed rgba(255,255,255,0.1);
-        outline: none;
-        font-family: sans-serif;
+          width: 100%;
+          font-size: 0.85rem;
+          color: var(--text-sub);
+          background: transparent;
+          border: 1px solid transparent;
+          border-bottom: 1px dashed rgba(255,255,255,0.1);
+          outline: none;
+          font-family: sans-serif;
       }
       .goal-detail-input::placeholder { color: rgba(255,255,255,0.2); }
       .goal-delete-btn {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background: #ff4444;
-        color: white;
-        border: 2px solid var(--panel-bg);
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        opacity: 0;
-        transition: opacity 0.2s, transform 0.2s;
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background: #ff4444;
+          color: white;
+          border: 2px solid var(--panel-bg);
+          border-radius: 50%;
+          width: 24px;
+          height: 24px;
+          font-size: 0.8rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+          opacity: 0;
+          transition: opacity 0.2s, transform 0.2s;
       }
       .goal-card:hover .goal-delete-btn { opacity: 1; }
       .goal-delete-btn:hover { transform: scale(1.1); }
 
       .goal-title-input:focus, .goal-time-input:focus, .goal-detail-input:focus {
-        border-bottom-color: var(--gold);
-        background: rgba(0,0,0,0.5);
+          border-bottom-color: var(--gold);
+          background: rgba(0,0,0,0.5);
       }
 
       .empty-text {
-        color: var(--chalk-white);
-        font-style: italic;
-        font-size: 0.85rem;
-        text-align: center;
-        padding: 10px;
-        opacity: 0.8;
+          color: var(--chalk-white);
+          font-style: italic;
+          font-size: 0.85rem;
+          text-align: center;
+          padding: 10px;
+          opacity: 0.8;
       }
 
       #statusLog {
-        text-align: center;
-        font-size: 0.8rem;
-        color: var(--gold-light);
-        background: rgba(0,0,0,0.3);
-        padding: 6px;
-        border-radius: 4px;
+          text-align: center;
+          font-size: 0.8rem;
+          color: var(--gold-light);
+          background: rgba(0,0,0,0.3);
+          padding: 6px;
+          border-radius: 4px;
       }
 
       /* --- スタンプ・ボトムパネル --- */
       .bottom-panel {
-        margin-top: 25px;
-        background: rgba(0,0,0,0.4);
-        border: 2px solid var(--panel-border);
-        border-radius: 8px;
-        padding: 15px;
+          margin-top: 25px;
+          background: rgba(0,0,0,0.4);
+          border: 2px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 15px;
       }
 
       .stamp-card-container {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        margin: 15px 0;
-        background: rgba(20, 15, 10, 0.6);
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px dashed var(--gold);
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          margin: 15px 0;
+          background: rgba(20, 15, 10, 0.6);
+          padding: 12px;
+          border-radius: 8px;
+          border: 1px dashed var(--gold);
       }
 
       .stamp-slot {
-        width: 42px;
-        height: 42px;
-        border: 2px dashed var(--panel-border);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        background: rgba(0,0,0,0.3);
-        position: relative;
+          width: 42px;
+          height: 42px;
+          border: 2px dashed var(--panel-border);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.4rem;
+          background: rgba(0,0,0,0.3);
+          position: relative;
       }
 
       .stamp-slot.active {
-        border: 2px solid var(--gold);
-        box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
-        background: rgba(50, 40, 20, 0.5);
+          border: 2px solid var(--gold);
+          box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+          background: rgba(50, 40, 20, 0.5);
       }
 
       .stamp-slot.bonus-slot {
-        border-color: #ff3b3b;
-        box-shadow: 0 0 10px rgba(255, 59, 59, 0.4);
+          border-color: #ff3b3b;
+          box-shadow: 0 0 10px rgba(255, 59, 59, 0.4);
       }
 
       .history-log-frame {
-        height: 120px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        background: rgba(10, 8, 5, 0.8);
-        border: 1px solid var(--panel-border);
-        border-radius: 6px;
-        box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-        padding: 8px;
-        margin: 8px 0;
+          height: 120px;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          background: rgba(10, 8, 5, 0.8);
+          border: 1px solid var(--panel-border);
+          border-radius: 6px;
+          box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+          padding: 8px;
+          margin: 8px 0;
       }
 
       .history-log-frame::-webkit-scrollbar {
-        width: 8px;
+          width: 8px;
       }
       .history-log-frame::-webkit-scrollbar-track {
-        background: rgba(0,0,0,0.3);
-        border-radius: 4px;
+          background: rgba(0,0,0,0.3);
+          border-radius: 4px;
       }
       .history-log-frame::-webkit-scrollbar-thumb {
-        background: var(--panel-border);
-        border-radius: 4px;
+          background: var(--panel-border);
+          border-radius: 4px;
       }
 
       .history-log-list {
-        font-size: 0.8rem;
-        color: var(--text-sub);
-        padding: 0;
-        margin: 0;
-        list-style: none;
+          font-size: 0.8rem;
+          color: var(--text-sub);
+          padding: 0;
+          margin: 0;
+          list-style: none;
       }
 
       .history-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 8px;
-        border-bottom: 1px dotted rgba(255,255,255,0.1);
+          display: flex;
+          justify-content: space-between;
+          padding: 6px 8px;
+          border-bottom: 1px dotted rgba(255,255,255,0.1);
       }
       .history-item:last-child {
-        border-bottom: none;
+          border-bottom: none;
       }
 
-      /* モーダル設定 */
+      /* 画面全体に正しく固定されるモーダル設定 */
       .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.85);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(0,0,0,0.85);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 10000;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s ease;
       }
 
       .modal-overlay.open {
-        opacity: 1;
-        pointer-events: auto;
+          opacity: 1;
+          pointer-events: auto;
       }
 
       .modal-card {
-        background: var(--panel-bg);
-        border: 4px solid var(--gold);
-        border-radius: 12px;
-        width: 90%;
-        max-width: 440px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
-        transform: scale(0.8);
-        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        max-height: 90vh;
-        overflow-y: auto;
-        box-sizing: border-box;
+          background: var(--panel-bg);
+          border: 4px solid var(--gold);
+          border-radius: 12px;
+          width: 90%;
+          max-width: 440px;
+          padding: 20px;
+          text-align: center;
+          box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+          transform: scale(0.8);
+          transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          max-height: 90vh;
+          overflow-y: auto;
+          box-sizing: border-box;
       }
 
       .modal-overlay.open .modal-card {
-        transform: scale(1);
+          transform: scale(1);
       }
 
       .cert-header {
-        border-bottom: 2px solid var(--gold);
-        padding-bottom: 10px;
-        margin-bottom: 15px;
+          border-bottom: 2px solid var(--gold);
+          padding-bottom: 10px;
+          margin-bottom: 15px;
       }
       .cert-rank {
-        font-size: 1.4rem;
-        color: #fff;
-        text-shadow: 0 0 10px var(--gold);
-        margin: 10px 0;
-        font-weight: bold;
+          font-size: 1.4rem;
+          color: #fff;
+          text-shadow: 0 0 10px var(--gold);
+          margin: 10px 0;
+          font-weight: bold;
       }
       .cert-stats-box {
-        background: rgba(0,0,0,0.4);
-        border: 1px solid var(--panel-border);
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        text-align: left;
+          background: rgba(0,0,0,0.4);
+          border: 1px solid var(--panel-border);
+          border-radius: 8px;
+          padding: 15px;
+          margin-bottom: 15px;
+          text-align: left;
       }
       .stamp-count-grid {
-        display: flex;
-        justify-content: space-around;
-        background: rgba(255,255,255,0.05);
-        padding: 10px;
-        border-radius: 6px;
-        margin-bottom: 15px;
+          display: flex;
+          justify-content: space-around;
+          background: rgba(255,255,255,0.05);
+          padding: 10px;
+          border-radius: 6px;
+          margin-bottom: 15px;
       }
       .stamp-count-item {
-        text-align: center;
+          text-align: center;
       }
       .stamp-count-item .icon { font-size: 1.5rem; }
       .stamp-count-item .num { font-size: 1rem; color: var(--gold-light); font-weight: bold; }
 
       .game-hours-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        max-height: 120px;
-        overflow-y: auto;
-        border-top: 1px dashed rgba(255,255,255,0.2);
-        padding-top: 10px;
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          max-height: 120px;
+          overflow-y: auto;
+          border-top: 1px dashed rgba(255,255,255,0.2);
+          padding-top: 10px;
       }
       .game-hours-list li {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        padding: 4px 0;
-        color: var(--text-main);
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.85rem;
+          padding: 4px 0;
+          color: var(--text-main);
       }
 
       .stamp-picker {
-        display: flex;
-        justify-content: center;
-        gap: 15px;
-        margin: 20px 0;
+          display: flex;
+          justify-content: center;
+          gap: 15px;
+          margin: 20px 0;
       }
 
       .stamp-option-btn {
-        font-size: 2.2rem;
-        width: 65px;
-        height: 65px;
-        border-radius: 50%;
-        border: 2px solid var(--gold);
-        background: rgba(0,0,0,0.5);
-        cursor: pointer;
-        transition: transform 0.2s, background 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+          font-size: 2.2rem;
+          width: 65px;
+          height: 65px;
+          border-radius: 50%;
+          border: 2px solid var(--gold);
+          background: rgba(0,0,0,0.5);
+          cursor: pointer;
+          transition: transform 0.2s, background 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
       }
 
       .stamp-option-btn:hover {
-        transform: scale(1.15) rotate(5deg);
-        background: rgba(212, 175, 55, 0.3);
-        border-color: #fff;
+          transform: scale(1.15) rotate(5deg);
+          background: rgba(212, 175, 55, 0.3);
+          border-color: #fff;
       }
 
       .btn-info { background: linear-gradient(to bottom, #3b4d5c, #1f2835); border-color: #6ba4b8; color: #bfe3f3; }
@@ -679,170 +713,168 @@
       .full-width { width: 100%; }
 
       .info-content {
-        text-align: left;
-        font-size: 0.85rem;
-        line-height: 1.6;
-        color: var(--text-main);
-        padding-right: 5px;
+          text-align: left;
+          font-size: 0.85rem;
+          line-height: 1.6;
+          color: var(--text-main);
+          padding-right: 5px;
       }
       .info-content h3 { color: var(--gold); border-bottom: 1px solid var(--panel-border); padding-bottom: 4px; margin-top: 15px; }
       .notice-box { background: rgba(255, 59, 59, 0.15); border: 1px solid #ff3b3b; border-radius: 6px; padding: 10px; margin-top: 10px; color: #ffcccc; }
 
       /* クレジット表示用スタイル */
       .footer-credits {
-        margin-top: 20px;
-        padding-top: 12px;
-        border-top: 1px dashed var(--panel-border);
-        text-align: center;
-        font-size: 0.75rem;
-        color: var(--text-sub);
-        line-height: 1.5;
+          margin-top: 20px;
+          padding-top: 12px;
+          border-top: 1px dashed var(--panel-border);
+          text-align: center;
+          font-size: 0.75rem;
+          color: var(--text-sub);
+          line-height: 1.5;
       }
       .footer-credits p {
-        margin: 2px 0;
+          margin: 2px 0;
       }
       .credit-sub {
-        font-size: 0.68rem;
-        opacity: 0.7;
+          font-size: 0.68rem;
+          opacity: 0.7;
       }
     </style>
   </head>
   <body>
     <div class="page-wrapper">
-      <div class="theme-selector">
-        <select id="themeSelect" onchange="changeTheme(this.value)">
-          <option value="default">🏕️ 通常 (ブラウン)</option>
-          <option value="snow">❄️ 氷雪 (ブルー)</option>
-          <option value="forest">🌲 深森 (グリーン)</option>
-        </select>
-      </div>
-
-      <div class="action-panel">
-        <div class="input-row">
-          <input
-            type="text"
-            id="gameInput"
-            class="game-input"
-            placeholder="タイトルを入力..."
-            onkeydown="if(event.key==='Enter') addGameFromInput()"
-          />
-          <button class="add-btn" onclick="addGameFromInput()">＋ 追加</button>
-          <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()">🎤 音声入力</button>
+      <div class="zelda-container">
+        <div class="theme-selector">
+          <select id="themeSelect" onchange="changeTheme(this.value)">
+            <option value="default">🏕️ 通常 (ブラウン)</option>
+            <option value="snow">❄️ 氷雪 (ブルー)</option>
+            <option value="forest">🌲 深森 (グリーン)</option>
+          </select>
         </div>
-        <div class="btn-grid">
-          <button
-            class="auto-btn"
-            onclick="toggleBoardMode()"
-            style="background: linear-gradient(to bottom, #5c4a3b, #352a1f); border-color: #b8946b; color: #f3dfbf;"
-          >
-            🔄 黒板切替（時間割 ⇄ 簡易目標）
-          </button>
-          <button class="auto-btn" onclick="autoBuildSchedule()" style="grid-column: 2;">
-            ⚡ 自動で時間割を組み上げる
-          </button>
-          <button class="nfc-read-btn" onclick="readFromNfc()">📡 NFC読み込み</button>
 
-          <button
-            style="background: linear-gradient(to bottom, #4a5c3b, #28351f); border-color: #7db86b; color: #d2f3bf;"
-            onclick="exportScheduleJson()"
-          >
-            📤 作戦をJSON保存
-          </button>
-          <label
-            style="display: inline-block; text-align: center; background: linear-gradient(to bottom, #3b505c, #1f2c35); border: 2px solid #6ba4b8; color: #bfe3f3; font-family: 'Georgia', serif; font-weight: bold; border-radius: 6px; cursor: pointer; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.4); font-size: 0.85rem;"
-          >
-            📥 作戦を読込
-            <input type="file" accept=".json" style="display:none;" onchange="importScheduleJson(event)" />
-          </label>
+        <div class="action-panel">
+          <div class="input-row">
+            <input
+              type="text"
+              id="gameInput"
+              class="game-input"
+              placeholder="タイトルを入力..."
+              onkeydown="if(event.key==='Enter') addGameFromInput()"
+            />
+            <button class="add-btn" onclick="addGameFromInput()">＋ 追加</button>
+            <button class="mic-btn" id="micBtn" onclick="toggleVoiceInput()">🎤 音声入力</button>
+          </div>
+          <div class="btn-grid">
+            <button
+              class="auto-btn"
+              onclick="toggleBoardMode()"
+              style="background: linear-gradient(to bottom, #5c4a3b, #352a1f); border-color: #b8946b; color: #f3dfbf;"
+            >
+              🔄 黒板切替（時間割 ⇄ 簡易目標）
+            </button>
+            <button class="auto-btn" onclick="autoBuildSchedule()" style="grid-column: 2;">
+              ⚡ 自動で時間割を組み上げる
+            </button>
+            <button class="nfc-read-btn" onclick="readFromNfc()">📡 NFC読み込み</button>
 
-          <button class="nfc-write-btn" onclick="writeFullDataToNfc()">
-            💾 タイトル・累計時間・スタンプ累計をNFC書き込み
-          </button>
-          <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
+            <button
+              style="background: linear-gradient(to bottom, #4a5c3b, #28351f); border-color: #7db86b; color: #d2f3bf;"
+              onclick="exportScheduleJson()"
+            >
+              📤 作戦をJSON保存
+            </button>
+            <label
+              style="display: inline-block; text-align: center; background: linear-gradient(to bottom, #3b505c, #1f2c35); border: 2px solid #6ba4b8; color: #bfe3f3; font-family: 'Georgia', serif; font-weight: bold; border-radius: 6px; cursor: pointer; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.4); font-size: 0.85rem;"
+            >
+              📥 作戦を読込
+              <input type="file" accept=".json" style="display:none;" onchange="importScheduleJson(event)" />
+            </label>
+
+            <button class="nfc-write-btn" onclick="writeFullDataToNfc()">
+              💾 タイトル・累計時間・スタンプ累計をNFC書き込み
+            </button>
+            <button class="export-btn" onclick="exportBlackboardImage()">🖼️ 黒板を画像として保存</button>
+          </div>
+          <div id="statusLog">「NFC読み込み」を押してデータをロードしてください</div>
         </div>
-        <div id="statusLog">「NFC読み込み」を押してデータをロードしてください</div>
-      </div>
 
-      <div class="section-title">
-        <span>📦 所持ゲーム一覧 (タップで完了切り替え)</span>
-      </div>
-      <ul class="lineup-list" id="lineupList">
-        <div class="empty-text">（ゲームがありません）</div>
-      </ul>
-
-      <div
-        style="text-align: center; margin-bottom: 10px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; border: 1px solid var(--panel-border);"
-      >
-        <span style="color: var(--gold); font-weight: bold; margin-right: 10px;">📅 冒険の日付:</span>
-        <input
-          type="date"
-          id="scheduleDate"
-          class="game-input"
-          style="width: auto; padding: 6px; cursor: pointer;"
-          onchange="onDateChange()"
-        />
-      </div>
-
-      <div class="blackboard-area" id="blackboardArea">
-        <div class="blackboard-header" id="blackboardHeader">🏫 本日の作戦時間割</div>
-
-        <!-- 時間割リスト -->
-        <ul class="schedule-list" id="scheduleList">
-          <div class="empty-text">（ゲームを追加すると時間割が展開されます）</div>
+        <div class="section-title">
+          <span>📦 所持ゲーム一覧 (タップで完了切り替え)</span>
+        </div>
+        <ul class="lineup-list" id="lineupList">
+          <div class="empty-text">（ゲームがありません）</div>
         </ul>
 
-        <!-- 簡易目標モード用コンテナ -->
-        <div class="simple-goal-container" id="simpleGoalContainer">
-          <div id="simpleGoalList" style="display:flex; flex-direction:column; gap:10px; flex:1;"></div>
+        <div
+          style="text-align: center; margin-bottom: 10px; background: rgba(0,0,0,0.4); padding: 8px; border-radius: 6px; border: 1px solid var(--panel-border);"
+        >
+          <span style="color: var(--gold); font-weight: bold; margin-right: 10px;">📅 冒険の日付:</span>
+          <input
+            type="date"
+            id="scheduleDate"
+            class="game-input"
+            style="width: auto; padding: 6px; cursor: pointer;"
+            onchange="onDateChange()"
+          />
+        </div>
+
+        <div class="blackboard-area" id="blackboardArea">
+          <div class="blackboard-header" id="blackboardHeader">🏫 本日の作戦時間割</div>
+
+          <ul class="schedule-list" id="scheduleList">
+            <div class="empty-text">（ゲームを追加すると時間割が展開されます）</div>
+          </ul>
+
+          <div class="simple-goal-container" id="simpleGoalContainer">
+            <div id="simpleGoalList" style="display:flex; flex-direction:column; gap:10px; flex:1;"></div>
+            <button
+              id="addSimpleGoalBtn"
+              onclick="addSimpleGoal()"
+              style="background: transparent; border: 1px dashed var(--gold); color: var(--gold); padding: 8px; border-radius: 6px; margin-top: 10px; cursor: pointer; transition: 0.2s; font-family: 'Georgia', serif;"
+            >
+              ＋ 新しい目標を追加 (最大5つ)
+            </button>
+          </div>
+        </div>
+
+        <div class="bottom-panel">
+          <div class="section-title" style="margin-top:0;">
+            <span>📜 冒険のログインボーナス (7日累計)</span>
+            <button style="padding: 3px 8px; font-size: 0.75rem;" onclick="openStampModal()">🎁 今日のスタンプ</button>
+          </div>
+
+          <div class="stamp-card-container" id="stampCardContainer">
+            <div class="stamp-slot" id="slot-0">1</div>
+            <div class="stamp-slot" id="slot-1">2</div>
+            <div class="stamp-slot" id="slot-2">3</div>
+            <div class="stamp-slot" id="slot-3">4</div>
+            <div class="stamp-slot" id="slot-4">5</div>
+            <div class="stamp-slot" id="slot-5">6</div>
+            <div class="stamp-slot bonus-slot" id="slot-6" title="7日累計特典">🪎</div>
+          </div>
+
+          <button class="btn-cert full-width" onclick="openCertificateModal()">
+            📜 冒険の証（プレイヤーカード）を開く
+          </button>
+          <button class="btn-info full-width" onclick="openInfoModal()" style="margin-top: 10px;">
+            ℹ️ アプリの使い方・NFCカードについて
+          </button>
           <button
-            id="addSimpleGoalBtn"
-            onclick="addSimpleGoal()"
-            style="background: transparent; border: 1px dashed var(--gold); color: var(--gold); padding: 8px; border-radius: 6px; margin-top: 10px; cursor: pointer; transition: 0.2s; font-family: 'Georgia', serif;"
+            class="btn-witch full-width"
+            onclick="window.open('https://adol896.github.io/witch-house/', '_blank')"
+            style="margin-top: 10px; background: linear-gradient(to bottom, #4a3b5c, #2b1f35); border-color: #b86bb8; color: #f3bff3;"
           >
-            ＋ 新しい目標を追加 (最大5つ)
+            🧙‍♀️ 魔女の家に行く
           </button>
         </div>
-      </div>
 
-      <div class="bottom-panel">
-        <div class="section-title" style="margin-top:0;">
-          <span>📜 冒険のログインボーナス (7日累計)</span>
-          <button style="padding: 3px 8px; font-size: 0.75rem;" onclick="openStampModal()">🎁 今日のスタンプ</button>
+        <div class="footer-credits">
+          <p>© <span id="creditYear"></span> 冒険の献立表</p>
+          <p class="credit-sub">Powered by html2canvas | Special Thanks</p>
         </div>
-
-        <div class="stamp-card-container" id="stampCardContainer">
-          <div class="stamp-slot" id="slot-0">1</div>
-          <div class="stamp-slot" id="slot-1">2</div>
-          <div class="stamp-slot" id="slot-2">3</div>
-          <div class="stamp-slot" id="slot-3">4</div>
-          <div class="stamp-slot" id="slot-4">5</div>
-          <div class="stamp-slot" id="slot-5">6</div>
-          <div class="stamp-slot bonus-slot" id="slot-6" title="7日累計特典">🪎</div>
-        </div>
-
-        <button class="btn-cert full-width" onclick="openCertificateModal()">
-          📜 冒険の証（プレイヤーカード）を開く
-        </button>
-        <button class="btn-info full-width" onclick="openInfoModal()" style="margin-top: 10px;">
-          ℹ️ アプリの使い方・NFCカードについて
-        </button>
-        <button
-          class="btn-witch full-width"
-          onclick="window.open('https://adol896.github.io/witch-house/', '_blank')"
-          style="margin-top: 10px; background: linear-gradient(to bottom, #4a3b5c, #2b1f35); border-color: #b86bb8; color: #f3bff3;"
-        >
-          🧙‍♀️ 魔女の家に行く
-        </button>
-      </div>
-
-      <!-- 最下部クレジット（適切な位置へ移動） -->
-      <div class="footer-credits">
-        <p>© <span id="creditYear"></span> 冒険の献立表</p>
-        <p class="credit-sub">Powered by html2canvas | Special Thanks</p>
       </div>
     </div>
 
-    <!-- モーダル：冒険の証（プレイヤーカード） -->
     <div class="modal-overlay" id="certificateModal">
       <div class="modal-card" id="certModalCard">
         <div class="cert-header">
@@ -924,7 +956,6 @@
       </div>
     </div>
 
-    <!-- モーダル：ログインスタンプ選択 -->
     <div class="modal-overlay" id="stampModal">
       <div class="modal-card">
         <h2 style="color: var(--gold); margin-top:0;">🎁 本日のログインボーナス</h2>
@@ -946,7 +977,6 @@
       </div>
     </div>
 
-    <!-- モーダル：アプリの説明 -->
     <div class="modal-overlay" id="infoModal">
       <div class="modal-card" style="max-width: 500px;">
         <h2 style="color: var(--gold); margin-top:0;">📖 冒険の時間割の使い方</h2>
@@ -984,176 +1014,174 @@
       let audioCtx;
 
       function initAudio() {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+          if (!audioCtx) {
+              audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
       }
 
       function playSound(type) {
-        initAudio();
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
+          initAudio();
+          if (audioCtx.state === 'suspended') {
+              audioCtx.resume();
+          }
 
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        const now = audioCtx.currentTime;
-
-        switch (type) {
-          case 'click':
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, now);
-            gainNode.gain.setValueAtTime(1, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-            osc.start(now);
-            osc.stop(now + 0.05);
-            break;
-
-          case 'switch':
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(600, now);
-            osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
-            gainNode.gain.setValueAtTime(0.8, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-            osc.start(now);
-            osc.stop(now + 0.1);
-            break;
-
-          case 'success':
-            playSuccessArpeggio(now);
-            break;
-
-          case 'error':
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, now);
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
-            gainNode.gain.setValueAtTime(0.3, now + 0.2);
-            gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
-            osc.start(now);
-            osc.stop(now + 0.25);
-            break;
-        }
-      }
-
-      function playSuccessArpeggio(startTime) {
-        const notes = [
-          { freq: 523.25, delay: 0, duration: 0.2 },
-          { freq: 659.25, delay: 0.08, duration: 0.2 },
-          { freq: 783.99, delay: 0.16, duration: 0.4 }
-        ];
-
-        notes.forEach(note => {
           const osc = audioCtx.createOscillator();
           const gainNode = audioCtx.createGain();
-
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(note.freq, startTime + note.delay);
-
-          gainNode.gain.setValueAtTime(0, startTime + note.delay);
-          gainNode.gain.linearRampToValueAtTime(0.3, startTime + note.delay + 0.02);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + note.delay + note.duration);
 
           osc.connect(gainNode);
           gainNode.connect(audioCtx.destination);
 
-          osc.start(startTime + note.delay);
-          osc.stop(startTime + note.delay + note.duration);
-        });
+          const now = audioCtx.currentTime;
+
+          switch (type) {
+              case 'click':
+                  osc.type = 'sine';
+                  osc.frequency.setValueAtTime(800, now);
+                  gainNode.gain.setValueAtTime(1, now);
+                  gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                  osc.start(now);
+                  osc.stop(now + 0.05);
+                  break;
+
+              case 'switch':
+                  osc.type = 'triangle';
+                  osc.frequency.setValueAtTime(600, now);
+                  osc.frequency.exponentialRampToValueAtTime(200, now + 0.1);
+                  gainNode.gain.setValueAtTime(0.8, now);
+                  gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                  osc.start(now);
+                  osc.stop(now + 0.1);
+                  break;
+
+              case 'success':
+                  playSuccessArpeggio(now);
+                  break;
+
+              case 'error':
+                  osc.type = 'sawtooth';
+                  osc.frequency.setValueAtTime(150, now);
+                  gainNode.gain.setValueAtTime(0, now);
+                  gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                  gainNode.gain.setValueAtTime(0.3, now + 0.2);
+                  gainNode.gain.linearRampToValueAtTime(0.01, now + 0.25);
+                  osc.start(now);
+                  osc.stop(now + 0.25);
+                  break;
+          }
+      }
+
+      function playSuccessArpeggio(startTime) {
+          const notes = [
+              { freq: 523.25, delay: 0, duration: 0.2 },
+              { freq: 659.25, delay: 0.08, duration: 0.2 },
+              { freq: 783.99, delay: 0.16, duration: 0.4 }
+          ];
+
+          notes.forEach(note => {
+              const osc = audioCtx.createOscillator();
+              const gainNode = audioCtx.createGain();
+
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(note.freq, startTime + note.delay);
+
+              gainNode.gain.setValueAtTime(0, startTime + note.delay);
+              gainNode.gain.linearRampToValueAtTime(0.3, startTime + note.delay + 0.02);
+              gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + note.delay + note.duration);
+
+              osc.connect(gainNode);
+              gainNode.connect(audioCtx.destination);
+
+              osc.start(startTime + note.delay);
+              osc.stop(startTime + note.delay + note.duration);
+          });
       }
 
       function exportDataFile() {
-        playSound('click');
-        const exportData = JSON.stringify({
-          games: gameDataList,
-          assignments: scheduleAssignments,
-          history: loginHistory,
-          dailyGoals: dailyGoals
-        }, null, 2);
+          playSound('click');
+          const exportData = JSON.stringify({
+              games: gameDataList,
+              assignments: scheduleAssignments,
+              history: loginHistory,
+              dailyGoals: dailyGoals
+          }, null, 2);
 
-        const blob = new Blob([exportData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
+          const blob = new Blob([exportData], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
 
-        link.href = url;
-        link.download = `冒険の時間割_データ_${new Date().toISOString().slice(0,10)}.json`;
-        link.click();
+          link.href = url;
+          link.download = `冒険の時間割_データ_${new Date().toISOString().slice(0,10)}.json`;
+          link.click();
 
-        URL.revokeObjectURL(url);
-        playSound('success');
-        document.getElementById('statusLog').textContent = "📥 データをテキストファイルとして保存しました！";
+          URL.revokeObjectURL(url);
+          playSound('success');
+          document.getElementById('statusLog').textContent = "📥 データをテキストファイルとして保存しました！";
       }
 
       function importDataFile(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+          const file = event.target.files[0];
+          if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          try {
-            const data = JSON.parse(e.target.result);
-            if (data.games) gameDataList = data.games;
-            if (data.assignments) scheduleAssignments = data.assignments;
-            if (data.history) loginHistory = data.history;
-            if (data.dailyGoals) dailyGoals = data.dailyGoals;
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              try {
+                  const data = JSON.parse(e.target.result);
+                  if (data.games) gameDataList = data.games;
+                  if (data.assignments) scheduleAssignments = data.assignments;
+                  if (data.history) loginHistory = data.history;
+                  if (data.dailyGoals) dailyGoals = data.dailyGoals;
 
-            saveLocalBackup();
-            updateDisplay();
-            closeCertificateModal();
-            playSound('success');
-            document.getElementById('statusLog').textContent = "✨ テキストファイルからデータを読み込みました！";
-          } catch(err) {
-            playSound('error');
-            document.getElementById('statusLog').textContent = "⚠️ ファイルの形式が正しくありません";
-            console.error(err);
-          }
-          event.target.value = '';
-        };
-        reader.readAsText(file);
+                  saveLocalBackup();
+                  updateDisplay();
+                  closeCertificateModal();
+                  playSound('success');
+                  document.getElementById('statusLog').textContent = "✨ テキストファイルからデータを読み込みました！";
+              } catch(err) {
+                  playSound('error');
+                  document.getElementById('statusLog').textContent = "⚠️ ファイルの形式が正しくありません";
+                  console.error(err);
+              }
+              event.target.value = '';
+          };
+          reader.readAsText(file);
       }
 
       function exportCertificateImage() {
-        playSound('click');
-        const modalCard = document.getElementById('certModalCard');
-        const buttons = modalCard.querySelectorAll('button');
-        buttons.forEach(btn => btn.style.display = 'none');
+          playSound('click');
+          const modalCard = document.getElementById('certModalCard');
 
-        html2canvas(modalCard, { 
-          backgroundColor: getComputedStyle(document.body).getPropertyValue('--panel-bg'), 
-          scale: 2 
-        }).then(canvas => {
-          playSound('success');
-          const link = document.createElement('a');
-          link.download = `冒険の証_${new Date().toISOString().slice(0,10)}.png`;
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-        }).finally(() => {
-          buttons.forEach(btn => btn.style.display = 'block');
-        });
+          const buttons = modalCard.querySelectorAll('button');
+          buttons.forEach(btn => btn.style.display = 'none');
+
+          html2canvas(modalCard, { backgroundColor: getComputedStyle(document.body).getPropertyValue('--panel-bg'), scale: 2 }).then(canvas => {
+              playSound('success');
+              const link = document.createElement('a');
+              link.download = `冒険の証_${new Date().toISOString().slice(0,10)}.png`;
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+          }).finally(() => {
+              buttons.forEach(btn => btn.style.display = 'block');
+          });
       }
 
       const defaultFrames = [
-        { duration: 1.5, defaultType: "game" },
-        { duration: 0.25, defaultType: "break" },
-        { duration: 1.5, defaultType: "game" },
-        { duration: 1.0, defaultType: "lunch" },
-        { duration: 2.0, defaultType: "game" },
-        { duration: 0.5, defaultType: "break" },
-        { duration: 1.5, defaultType: "game" },
-        { duration: 1.5, defaultType: "game" },
-        { duration: 2.0, defaultType: "game" }
+          { duration: 1.5, defaultType: "game" },
+          { duration: 0.25, defaultType: "break" },
+          { duration: 1.5, defaultType: "game" },
+          { duration: 1.0, defaultType: "lunch" },
+          { duration: 2.0, defaultType: "game" },
+          { duration: 0.5, defaultType: "break" },
+          { duration: 1.5, defaultType: "game" },
+          { duration: 1.5, defaultType: "game" },
+          { duration: 2.0, defaultType: "game" }
       ];
 
       const durationOptions = [
-        { label: "5分", value: 5 / 60 }, { label: "10分", value: 10 / 60 },
-        { label: "15分", value: 15 / 60 }, { label: "20分", value: 20 / 60 },
-        { label: "30分", value: 30 / 60 }, { label: "1時間", value: 1.0 },
-        { label: "1.5時間", value: 1.5 }, { label: "2時間", value: 2.0 },
-        { label: "2.5時間", value: 2.5 }, { label: "3時間", value: 3.0 }, { label: "4時間", value: 4.0 }
+          { label: "5分", value: 5 / 60 }, { label: "10分", value: 10 / 60 },
+          { label: "15分", value: 15 / 60 }, { label: "20分", value: 20 / 60 },
+          { label: "30分", value: 30 / 60 }, { label: "1時間", value: 1.0 },
+          { label: "1.5時間", value: 1.5 }, { label: "2時間", value: 2.0 },
+          { label: "2.5時間", value: 2.5 }, { label: "3時間", value: 3.0 }, { label: "4時間", value: 4.0 }
       ];
 
       let scheduleAssignments = [];
@@ -1170,332 +1198,346 @@
       const BASE_START_MIN = 0;
 
       function changeTheme(themeName, playAudio = true) {
-        document.body.classList.remove('theme-snow', 'theme-forest');
-        if (themeName !== 'default') {
-          document.body.classList.add('theme-' + themeName);
-        }
-        localStorage.setItem('zelda_app_theme', themeName);
+          document.body.classList.remove('theme-snow', 'theme-forest');
+          if (themeName !== 'default') {
+              document.body.classList.add('theme-' + themeName);
+          }
+          localStorage.setItem('zelda_app_theme', themeName);
 
-        if (playAudio && typeof playSound === 'function') {
-          try { playSound('switch'); } catch(e){}
-        }
+          if (playAudio && typeof playSound === 'function') {
+              try { playSound('switch'); } catch(e){}
+          }
       }
 
       function loadTheme() {
-        const savedTheme = localStorage.getItem('zelda_app_theme') || 'default';
-        const themeSelect = document.getElementById('themeSelect');
-        if (themeSelect) themeSelect.value = savedTheme;
-        changeTheme(savedTheme, false);
+          const savedTheme = localStorage.getItem('zelda_app_theme') || 'default';
+          const themeSelect = document.getElementById('themeSelect');
+          if (themeSelect) themeSelect.value = savedTheme;
+          changeTheme(savedTheme, false);
       }
 
       function loadLocalBackup() {
-        const savedData = localStorage.getItem('zelda_game_data');
-        if (savedData) {
-          try {
-            const data = JSON.parse(savedData);
-            if (data.games) gameDataList = data.games;
-            if (data.history) loginHistory = data.history;
-            if (data.dailySchedules) dailySchedules = data.dailySchedules;
-            if (data.dailyGoals) dailyGoals = data.dailyGoals;
-            else if (data.assignments) dailySchedules[getTodayStr()] = data.assignments;
-          } catch (e) {
-            console.error("データの読み込みに失敗しました", e);
+          const savedData = localStorage.getItem('zelda_game_data');
+          if (savedData) {
+              try {
+                  const data = JSON.parse(savedData);
+                  if (data.games) gameDataList = data.games;
+                  if (data.history) loginHistory = data.history;
+                  if (data.dailySchedules) dailySchedules = data.dailySchedules;
+                  if (data.dailyGoals) dailyGoals = data.dailyGoals;
+                  else if (data.assignments) dailySchedules[getTodayStr()] = data.assignments;
+              } catch (e) {
+                  console.error("データの読み込みに失敗しました", e);
+              }
           }
-        }
-        currentDateStr = getTodayStr();
-        document.getElementById('scheduleDate').value = currentDateStr;
-        onDateChange(false);
+          currentDateStr = getTodayStr();
+          document.getElementById('scheduleDate').value = currentDateStr;
+          onDateChange(false);
       }
 
       function onDateChange(playAudio = true) {
-        if(playAudio) playSound('switch');
+          if(playAudio) playSound('switch');
 
-        currentDateStr = document.getElementById('scheduleDate').value;
+          currentDateStr = document.getElementById('scheduleDate').value;
 
-        if (!dailySchedules[currentDateStr] || dailySchedules[currentDateStr].length === 0) {
-          initDefaultSchedule();
-        } else {
-          scheduleAssignments = JSON.parse(JSON.stringify(dailySchedules[currentDateStr]));
-        }
+          if (!dailySchedules[currentDateStr] || dailySchedules[currentDateStr].length === 0) {
+              initDefaultSchedule();
+          } else {
+              scheduleAssignments = JSON.parse(JSON.stringify(dailySchedules[currentDateStr]));
+          }
 
-        if (!dailyGoals[currentDateStr]) {
-          dailyGoals[currentDateStr] = [];
-        }
-        simpleGoalsData = dailyGoals[currentDateStr];
+          if (!dailyGoals[currentDateStr]) {
+              dailyGoals[currentDateStr] = [];
+          }
+          simpleGoalsData = dailyGoals[currentDateStr];
 
-        updateDisplay();
-        saveLocalBackup();
+          updateDisplay();
+          saveLocalBackup();
       }
 
+      loadTheme();
+      loadLocalBackup();
+      updateDisplay();
+      setTimeout(() => checkTodayStamp(), 800);
+
       function getTodayStr() {
-        const now = new Date();
-        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          const now = new Date();
+          return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       }
 
       function initDefaultSchedule() {
-        let gameCounter = 0;
-        scheduleAssignments = defaultFrames.map((f) => {
-          let assignedVal = "-1";
-          if (f.defaultType === "lunch") assignedVal = "-2";
-          else if (f.defaultType === "game") {
-            if (gameDataList.length > 0) {
-              assignedVal = String(gameCounter % gameDataList.length);
-              gameCounter++;
-            } else assignedVal = "0";
-          }
-          return { gameIndexVal: assignedVal, duration: f.duration };
-        });
-        dailySchedules[currentDateStr] = scheduleAssignments;
+          let gameCounter = 0;
+          scheduleAssignments = defaultFrames.map((f) => {
+              let assignedVal = "-1";
+              if (f.defaultType === "lunch") assignedVal = "-2";
+              else if (f.defaultType === "game") {
+                  if (gameDataList.length > 0) {
+                      assignedVal = String(gameCounter % gameDataList.length);
+                      gameCounter++;
+                  } else assignedVal = "0";
+              }
+              return { gameIndexVal: assignedVal, duration: f.duration };
+          });
+          dailySchedules[currentDateStr] = scheduleAssignments;
       }
 
       function addGameFromInput() {
-        const inputEl = document.getElementById('gameInput');
-        const title = inputEl.value.trim();
-        if (!title) {
-          playSound('error');
-          document.getElementById('statusLog').textContent = "⚠️ ゲームタイトルを入力してください";
-          return;
-        }
-        playSound('success');
-        addGameToList(title);
-        inputEl.value = '';
+          const inputEl = document.getElementById('gameInput');
+          const title = inputEl.value.trim();
+          if (!title) {
+              playSound('error');
+              document.getElementById('statusLog').textContent = "⚠️ ゲームタイトルを入力してください";
+              return;
+          }
+          playSound('success');
+          addGameToList(title);
+          inputEl.value = '';
       }
 
       function addGameToList(title) {
-        gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
-        initDefaultSchedule();
-        updateDisplay();
-        saveLocalBackup();
-        document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！`;
+          gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
+          initDefaultSchedule();
+          updateDisplay();
+          saveLocalBackup();
+          document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！`;
       }
 
       let recognition = null;
       let isListening = false;
       function toggleVoiceInput() {
-        playSound('click');
-        const statusEl = document.getElementById('statusLog');
-        const micBtn = document.getElementById('micBtn');
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-          playSound('error');
-          statusEl.textContent = "⚠️ 音声非対応ブラウザです";
-          return;
-        }
-        if (isListening && recognition) { recognition.stop(); return; }
-        recognition = new SpeechRecognition();
-        recognition.lang = 'ja-JP';
-        recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); micBtn.textContent = "🛑 認識停止"; statusEl.textContent = "🎙️ 聴き取り中..."; };
-        recognition.onresult = (e) => {
-          playSound('success');
-          addGameToList(e.results[0][0].transcript);
-        };
-        recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); micBtn.textContent = "🎤 音声入力"; };
-        recognition.start();
+          playSound('click');
+          const statusEl = document.getElementById('statusLog');
+          const micBtn = document.getElementById('micBtn');
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SpeechRecognition) {
+              playSound('error');
+              statusEl.textContent = "⚠️ 音声非対応ブラウザです";
+              return;
+          }
+          if (isListening && recognition) { recognition.stop(); return; }
+          recognition = new SpeechRecognition();
+          recognition.lang = 'ja-JP';
+          recognition.onstart = () => { isListening = true; micBtn.classList.add('listening'); micBtn.textContent = "🛑 認識停止"; statusEl.textContent = "🎙️ 聴き取り中..."; };
+          recognition.onresult = (e) => {
+              playSound('success');
+              addGameToList(e.results[0][0].transcript);
+          };
+          recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); micBtn.textContent = "🎤 音声入力"; };
+          recognition.start();
       }
 
       function autoBuildSchedule() {
-        playSound('switch');
-        initDefaultSchedule();
-        if(currentBoardMode === 'goal') toggleBoardMode();
-        updateDisplay();
-        saveLocalBackup();
-        document.getElementById('statusLog').textContent = "⚡ 時間割を自動で組み上げました！";
+          playSound('switch');
+          initDefaultSchedule();
+          if(currentBoardMode === 'goal') toggleBoardMode();
+          updateDisplay();
+          saveLocalBackup();
+          document.getElementById('statusLog').textContent = "⚡ 時間割を自動で組み上げました！";
       }
 
       function changeScheduleGame(frameIndex, selectedValue) {
-        playSound('switch');
-        scheduleAssignments[frameIndex].gameIndexVal = selectedValue;
-        dailySchedules[currentDateStr] = scheduleAssignments;
-        updateDisplay();
-        saveLocalBackup();
+          playSound('switch');
+          scheduleAssignments[frameIndex].gameIndexVal = selectedValue;
+          dailySchedules[currentDateStr] = scheduleAssignments;
+          updateDisplay();
+          saveLocalBackup();
       }
 
       function changeScheduleDuration(frameIndex, newDuration) {
-        playSound('switch');
-        scheduleAssignments[frameIndex].duration = parseFloat(newDuration);
-        dailySchedules[currentDateStr] = scheduleAssignments;
-        updateDisplay();
-        saveLocalBackup();
+          playSound('switch');
+          scheduleAssignments[frameIndex].duration = parseFloat(newDuration);
+          dailySchedules[currentDateStr] = scheduleAssignments;
+          updateDisplay();
+          saveLocalBackup();
       }
 
       function toggleComplete(gameIndex) {
-        playSound('success');
-        let g = gameDataList[gameIndex];
-        g.completed = !g.completed;
+          playSound('success');
+          let g = gameDataList[gameIndex];
+          g.completed = !g.completed;
 
-        if (g.completed) {
-          let assignedMins = 0;
+          if (g.completed) {
+              let assignedMins = 0;
 
-          if (currentBoardMode === 'schedule') {
-            scheduleAssignments.forEach(a => {
-              if (a.gameIndexVal === String(gameIndex)) {
-                assignedMins += Math.round(a.duration * 60);
+              if (currentBoardMode === 'schedule') {
+                  scheduleAssignments.forEach(a => {
+                      if (a.gameIndexVal === String(gameIndex)) {
+                          assignedMins += Math.round(a.duration * 60);
+                      }
+                  });
+              } else if (currentBoardMode === 'goal') {
+                  simpleGoalsData.forEach(goal => {
+                      if (goal.title && goal.title.trim() === g.title.trim()) {
+                          const h = parseInt(goal.h) || 0;
+                          const m = parseInt(goal.m) || 0;
+                          assignedMins += (h * 60) + m;
+                      }
+                  });
               }
-            });
-          } else if (currentBoardMode === 'goal') {
-            simpleGoalsData.forEach(goal => {
-              if (goal.title && goal.title.trim() === g.title.trim()) {
-                const h = parseInt(goal.h) || 0;
-                const m = parseInt(goal.m) || 0;
-                assignedMins += (h * 60) + m;
-              }
-            });
+
+              g.totalMinutes = (g.totalMinutes || 0) + assignedMins;
+              g.playCount = (g.playCount || 0) + 1;
+
+              const modeName = currentBoardMode === 'schedule' ? '時間割' : '簡易目標';
+              document.getElementById('statusLog').textContent = `⚔️ 「${g.title}」の達成！（${modeName}より +${assignedMins}分記録）`;
+          } else {
+              document.getElementById('statusLog').textContent = `🔄 「${g.title}」を未完了に戻しました`;
           }
 
-          g.totalMinutes = (g.totalMinutes || 0) + assignedMins;
-          g.playCount = (g.playCount || 0) + 1;
-
-          const modeName = currentBoardMode === 'schedule' ? '時間割' : '簡易目標';
-          document.getElementById('statusLog').textContent = `⚔️ 「${g.title}」の達成！（${modeName}より +${assignedMins}分記録）`;
-        } else {
-          document.getElementById('statusLog').textContent = `🔄 「${g.title}」を未完了に戻しました`;
-        }
-
-        updateDisplay();
-        saveLocalBackup();
+          updateDisplay();
+          saveLocalBackup();
       }
 
       function exportBlackboardImage() {
-        playSound('click');
-        const blackboard = document.getElementById('blackboardArea');
-        const pageWrapper = document.querySelector('.page-wrapper');
-        const statusEl = document.getElementById('statusLog');
+          playSound('click');
+          const blackboard = document.getElementById('blackboardArea');
+          const pageWrapper = document.querySelector('.page-wrapper');
+          const statusEl = document.getElementById('statusLog');
 
-        statusEl.textContent = "🖼️ 画像を生成中...";
+          statusEl.textContent = "🖼️ 画像を生成中...";
 
-        blackboard.classList.add('export-clean');
+          blackboard.classList.add('export-clean');
 
-        const originalTransform = pageWrapper ? pageWrapper.style.transform : '';
-        const originalWidth = pageWrapper ? pageWrapper.style.width : '';
+          const originalTransform = pageWrapper ? pageWrapper.style.transform : '';
+          const originalWidth = pageWrapper ? pageWrapper.style.width : '';
 
-        if (pageWrapper) {
-          pageWrapper.style.transform = 'none';
-          pageWrapper.style.width = '100%';
-        }
+          if (pageWrapper) {
+              pageWrapper.style.transform = 'none';
+              pageWrapper.style.width = '100%';
+          }
 
-        const bgColor = getComputedStyle(document.body).getPropertyValue('--blackboard-bg');
+          const bgColor = getComputedStyle(document.body).getPropertyValue('--blackboard-bg');
 
-        setTimeout(() => {
-          html2canvas(blackboard, {
-            backgroundColor: bgColor,
-            scale: 2,
-            useCORS: true,
-            windowWidth: blackboard.scrollWidth,
-            windowHeight: blackboard.scrollHeight
-          }).then(canvas => {
-            playSound('success');
-            const link = document.createElement('a');
-            let prefix = currentBoardMode === 'schedule' ? '作戦時間割' : '簡易目標';
-            link.download = `${prefix}_${new Date().toISOString().slice(0,10)}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            statusEl.textContent = "🖼️ 黒板画像を保存しました！";
-          }).catch(err => {
-            console.error(err);
-            statusEl.textContent = "❌ 画像保存に失敗しました";
-          }).finally(() => {
-            if (pageWrapper) {
-              pageWrapper.style.transform = originalTransform;
-              pageWrapper.style.width = originalWidth;
-            }
-            blackboard.classList.remove('export-clean');
-          });
-        }, 50);
+          setTimeout(() => {
+              html2canvas(blackboard, {
+                  backgroundColor: bgColor,
+                  scale: 2,
+                  useCORS: true,
+                  windowWidth: blackboard.scrollWidth,
+                  windowHeight: blackboard.scrollHeight
+              }).then(canvas => {
+                  playSound('success');
+                  const link = document.createElement('a');
+                  let prefix = currentBoardMode === 'schedule' ? '作戦時間割' : '簡易目標';
+                  link.download = `${prefix}_${new Date().toISOString().slice(0,10)}.png`;
+                  link.href = canvas.toDataURL('image/png');
+                  link.click();
+                  statusEl.textContent = "🖼️ 黒板画像を保存しました！";
+              }).catch(err => {
+                  console.error(err);
+                  statusEl.textContent = "❌ 画像保存に失敗しました";
+              }).finally(() => {
+                  if (pageWrapper) {
+                      pageWrapper.style.transform = originalTransform;
+                      pageWrapper.style.width = originalWidth;
+                  }
+                  blackboard.classList.remove('export-clean');
+              });
+          }, 50);
       }
 
+      /* NFC書き込み用軽量化データ生成（容量オーバー防止） */
       function generateFullNfcData() {
-        const dataToSave = {
-          games: gameDataList.map(g => ({
-            t: g.title,
-            m: g.totalMinutes || 0
-          })),
-          history: loginHistory
-        };
-        return JSON.stringify(dataToSave);
+          const dataToSave = {
+              games: gameDataList.map(g => ({
+                  t: g.title,
+                  m: g.totalMinutes || 0
+              })),
+              history: loginHistory.map(h => ({
+                  d: h.date,
+                  s: h.stamp
+              }))
+          };
+          return JSON.stringify(dataToSave);
       }
 
       async function readFromNfc() {
-        playSound('click');
-        const statusEl = document.getElementById('statusLog');
-        if (!('NDEFReader' in window)) {
-          playSound('error');
-          statusEl.textContent = "⚠️ Web NFC非対応端末です";
-          return;
-        }
-        try {
-          const ndef = new NDEFReader();
-          await ndef.scan();
-          statusEl.textContent = "📡 NFCカードをタッチしてください...";
-          ndef.onreading = event => {
-            playSound('success');
-            const decoder = new TextDecoder();
-            for (const record of event.message.records) {
-              if (record.recordType === "text") {
-                try {
-                  const textData = decoder.decode(record.data);
-                  let parsed;
-                  try { parsed = JSON.parse(textData); } catch(e) { parsed = textData.split('\n').map(s => s.trim()).filter(Boolean); }
+          playSound('click');
+          const statusEl = document.getElementById('statusLog');
+          if (!('NDEFReader' in window)) {
+              playSound('error');
+              statusEl.textContent = "⚠️ Web NFC非対応端末です";
+              return;
+          }
+          try {
+              const ndef = new NDEFReader();
+              await ndef.scan();
+              statusEl.textContent = "📡 NFCカードをタッチしてください...";
+              ndef.onreading = event => {
+                  playSound('success');
+                  const decoder = new TextDecoder();
+                  for (const record of event.message.records) {
+                      if (record.recordType === "text") {
+                          try {
+                              const textData = decoder.decode(record.data);
+                              let parsed;
+                              try { parsed = JSON.parse(textData); } catch(e) { parsed = textData.split('\n').map(s => s.trim()).filter(Boolean); }
 
-                  if (parsed && typeof parsed === 'object' && parsed.games) {
-                    gameDataList = parsed.games.map(g => ({
-                      title: g.title || g.t || "名無しのゲーム",
-                      playCount: g.playCount || g.p || 0,
-                      totalMinutes: g.totalMinutes || g.m || 0,
-                      completed: g.completed !== undefined ? g.completed : false
-                    }));
-                    if (parsed.history) loginHistory = parsed.history;
-                  } else if (Array.isArray(parsed)) {
-                    gameDataList = parsed.map(item => {
-                      if (typeof item === 'object' && item !== null) {
-                        return {
-                          title: item.title || item.t || "名無しのゲーム",
-                          playCount: item.playCount || item.p || 0,
-                          totalMinutes: item.totalMinutes || item.m || 0,
-                          completed: item.completed !== undefined ? item.completed : false
-                        };
-                      } else { return { title: String(item), playCount: 0, totalMinutes: 0, completed: false }; }
-                    });
+                              if (parsed && typeof parsed === 'object' && parsed.games) {
+                                  gameDataList = parsed.games.map(g => ({
+                                      title: g.title || g.t || "名無しのゲーム",
+                                      playCount: g.playCount || g.p || 0,
+                                      totalMinutes: g.totalMinutes || g.m || 0,
+                                      completed: g.completed !== undefined ? g.completed : false
+                                  }));
+                                  if (parsed.history && Array.isArray(parsed.history)) {
+                                      loginHistory = parsed.history.map(h => ({
+                                          date: h.date || h.d || getTodayStr(),
+                                          stamp: h.stamp || h.s || '🎃'
+                                      }));
+                                  }
+                              } else if (Array.isArray(parsed)) {
+                                  gameDataList = parsed.map(item => {
+                                      if (typeof item === 'object' && item !== null) {
+                                          return {
+                                              title: item.title || item.t || "名無しのゲーム",
+                                              playCount: item.playCount || item.p || 0,
+                                              totalMinutes: item.totalMinutes || item.m || 0,
+                                              completed: item.completed !== undefined ? item.completed : false
+                                          };
+                                      } else { return { title: String(item), playCount: 0, totalMinutes: 0, completed: false }; }
+                                  });
+                              }
+                              initDefaultSchedule();
+                              updateDisplay();
+                              saveLocalBackup();
+                              statusEl.textContent = "✨ NFCからゲームデータとスタンプ累計を読み込みました！";
+                              checkTodayStamp();
+                          } catch(err) {
+                              playSound('error');
+                              statusEl.textContent = "⚠️ データの解析に失敗しました";
+                          }
+                      }
                   }
-                  initDefaultSchedule();
-                  updateDisplay();
-                  saveLocalBackup();
-                  statusEl.textContent = "✨ NFCからゲームデータとスタンプ累計を読み込みました！";
-                  checkTodayStamp();
-                } catch(err) {
-                  playSound('error');
-                  statusEl.textContent = "⚠️ データの解析に失敗しました";
-                }
-              }
-            }
-          };
-        } catch (e) { playSound('error'); statusEl.textContent = "❌ NFC読み込みエラー: " + e; }
+              };
+          } catch (e) { playSound('error'); statusEl.textContent = "❌ NFC読み込みエラー: " + e; }
       }
 
       function removeGame(index, event) {
-        playSound('switch');
-        event.stopPropagation();
-        gameDataList.splice(index, 1);
-        initDefaultSchedule();
-        updateDisplay();
-        saveLocalBackup();
+          playSound('switch');
+          event.stopPropagation();
+          gameDataList.splice(index, 1);
+          initDefaultSchedule();
+          updateDisplay();
+          saveLocalBackup();
       }
 
       async function writeFullDataToNfc() {
-        playSound('click');
-        const statusEl = document.getElementById('statusLog');
-        if (!('NDEFReader' in window)) {
-          playSound('error');
-          statusEl.textContent = "⚠️ Web NFC非対応環境です";
-          return;
-        }
-        try {
-          const ndef = new NDEFReader();
-          statusEl.textContent = "✍️ 【全データ書込】NFCタグにタッチしてください...";
-          const nfcDataStr = generateFullNfcData();
-          await ndef.write({ records: [ { recordType: "text", data: nfcDataStr } ] });
-          playSound('success');
-          statusEl.textContent = "🎉 タイトル・累計時間・スタンプ累計の書き込みに成功しました！";
-        } catch (e) { playSound('error'); statusEl.textContent = "❌ 書き込み失敗: " + e; }
+          playSound('click');
+          const statusEl = document.getElementById('statusLog');
+          if (!('NDEFReader' in window)) {
+              playSound('error');
+              statusEl.textContent = "⚠️ Web NFC非対応環境です";
+              return;
+          }
+          try {
+              const ndef = new NDEFReader();
+              statusEl.textContent = "✍️ 【全データ書込】NFCタグにタッチしてください...";
+              const nfcDataStr = generateFullNfcData();
+              await ndef.write({ records: [ { recordType: "text", data: nfcDataStr } ] });
+              playSound('success');
+              statusEl.textContent = "🎉 タイトル・累計時間・スタンプ累計の書き込みに成功しました！";
+          } catch (e) { playSound('error'); statusEl.textContent = "❌ 書き込み失敗: " + e; }
       }
 
       function openStampModal() { playSound('click'); document.getElementById('stampModal').classList.add('open'); }
@@ -1504,329 +1546,336 @@
       function closeInfoModal() { playSound('click'); document.getElementById('infoModal').classList.remove('open'); }
 
       function openCertificateModal() {
-        playSound('click');
-        const modal = document.getElementById('certificateModal');
-        const totalDays = loginHistory.length;
-        let titleStr = "🟤 ブロンズの旅人";
-        if(totalDays >= 50) titleStr = "🌟 プラチナの英雄";
-        else if(totalDays >= 30) titleStr = "💎 ダイヤモンドの勇者";
-        else if(totalDays >= 14) titleStr = "🔴 ルビーの戦士";
-        else if(totalDays >= 7) titleStr = "🟡 ゴールドの冒険者";
-        else if(totalDays >= 3) titleStr = "⚪ シルバーの剣士";
-        document.getElementById('certRankDisplay').textContent = titleStr;
+          playSound('click');
+          const modal = document.getElementById('certificateModal');
+          const totalDays = loginHistory.length;
+          let titleStr = "🟤 ブロンズの旅人";
+          if(totalDays >= 50) titleStr = "🌟 プラチナの英雄";
+          else if(totalDays >= 30) titleStr = "💎 ダイヤモンドの勇者";
+          else if(totalDays >= 14) titleStr = "🔴 ルビーの戦士";
+          else if(totalDays >= 7) titleStr = "🟡 ゴールドの冒険者";
+          else if(totalDays >= 3) titleStr = "⚪ シルバーの剣士";
+          document.getElementById('certRankDisplay').textContent = titleStr;
 
-        let counts = { '🎃': 0, '⚔️': 0, '🛡️': 0 };
-        loginHistory.forEach(h => { if(counts[h.stamp] !== undefined) counts[h.stamp]++; });
-        document.getElementById('count-pumpkin').textContent = counts['🎃'];
-        document.getElementById('count-sword').textContent = counts['⚔️'];
-        document.getElementById('count-shield').textContent = counts['🛡️'];
-        document.getElementById('count-scythe').textContent = Math.floor(totalDays / 7);
-
-        const gameListEl = document.getElementById('certGameList');
-        gameListEl.innerHTML = '';
-        if(gameDataList.length === 0) {
-          gameListEl.innerHTML = '<li style="justify-content:center; color:var(--text-sub);">記録がありません</li>';
-        } else {
-          gameDataList.forEach(g => {
-            const totalMins = g.totalMinutes || 0;
-            const hours = Math.floor(totalMins / 60);
-            const mins = totalMins % 60;
-            let timeStr = "";
-            if (hours > 0) timeStr += `${hours}時間`;
-            if (mins > 0 || hours === 0) timeStr += `${mins}分`;
-            gameListEl.innerHTML += `<li><span style="font-weight:bold; color:var(--gold-light);">${g.title}</span><span>${timeStr}</span></li>`;
+          let counts = { '🎃': 0, '⚔️': 0, '🛡️': 0 };
+          loginHistory.forEach(h => {
+              const s = h.stamp || h.s;
+              if(counts[s] !== undefined) counts[s]++;
           });
-        }
+          document.getElementById('count-pumpkin').textContent = counts['🎃'];
+          document.getElementById('count-sword').textContent = counts['⚔️'];
+          document.getElementById('count-shield').textContent = counts['🛡️'];
+          document.getElementById('count-scythe').textContent = Math.floor(totalDays / 7);
 
-        const historyListEl = document.getElementById('historyLogList');
-        historyListEl.innerHTML = '';
-        if (loginHistory.length === 0) {
-          historyListEl.innerHTML = '<div class="empty-text" style="padding: 2px;">（記録がありません）</div>';
-        } else {
-          [...loginHistory].reverse().forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'history-item';
-            li.innerHTML = `<span>📅 ${item.date}</span><span style="color:var(--gold-light);">獲得: ${item.stamp}</span>`;
-            historyListEl.appendChild(li);
-          });
-        }
-        modal.classList.add('open');
+          const gameListEl = document.getElementById('certGameList');
+          gameListEl.innerHTML = '';
+          if(gameDataList.length === 0) {
+              gameListEl.innerHTML = '<li style="justify-content:center; color:var(--text-sub);">記録がありません</li>';
+          } else {
+              gameDataList.forEach(g => {
+                  const totalMins = g.totalMinutes || 0;
+                  const hours = Math.floor(totalMins / 60);
+                  const mins = totalMins % 60;
+                  let timeStr = "";
+                  if (hours > 0) timeStr += `${hours}時間`;
+                  if (mins > 0 || hours === 0) timeStr += `${mins}分`;
+                  gameListEl.innerHTML += `<li><span style="font-weight:bold; color:var(--gold-light);">${g.title}</span><span>${timeStr}</span></li>`;
+              });
+          }
+
+          const historyListEl = document.getElementById('historyLogList');
+          historyListEl.innerHTML = '';
+          if (loginHistory.length === 0) {
+              historyListEl.innerHTML = '<div class="empty-text" style="padding: 2px;">（記録がありません）</div>';
+          } else {
+              [...loginHistory].reverse().forEach(item => {
+                  const li = document.createElement('li');
+                  li.className = 'history-item';
+                  const dateStr = item.date || item.d || '';
+                  const stampSymbol = item.stamp || item.s || '';
+                  li.innerHTML = `<span>📅 ${dateStr}</span><span style="color:var(--gold-light);">獲得: ${stampSymbol}</span>`;
+                  historyListEl.appendChild(li);
+              });
+          }
+          modal.classList.add('open');
       }
 
       function closeCertificateModal() { playSound('click'); document.getElementById('certificateModal').classList.remove('open'); }
 
       function checkTodayStamp() {
-        const today = getTodayStr();
-        if (!loginHistory.some(item => item.date === today)) setTimeout(() => openStampModal(), 500);
+          const today = getTodayStr();
+          if (!loginHistory.some(item => (item.date === today || item.d === today))) setTimeout(() => openStampModal(), 500);
       }
 
       function selectStamp(stampSymbol) {
-        playSound('success');
-        const today = getTodayStr();
-        const existingIndex = loginHistory.findIndex(item => item.date === today);
-        if (existingIndex >= 0) loginHistory[existingIndex].stamp = stampSymbol;
-        else loginHistory.push({ date: today, stamp: stampSymbol });
-        closeStampModal();
-        updateDisplay();
-        saveLocalBackup();
-        document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！`;
+          playSound('success');
+          const today = getTodayStr();
+          const existingIndex = loginHistory.findIndex(item => (item.date === today || item.d === today));
+          if (existingIndex >= 0) {
+              loginHistory[existingIndex].stamp = stampSymbol;
+              loginHistory[existingIndex].date = today;
+          } else {
+              loginHistory.push({ date: today, stamp: stampSymbol });
+          }
+          closeStampModal();
+          updateDisplay();
+          saveLocalBackup();
+          document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！`;
       }
 
       function saveLocalBackup() {
-        const data = {
-          games: gameDataList,
-          dailySchedules: dailySchedules,
-          dailyGoals: dailyGoals,
-          history: loginHistory
-        };
-        localStorage.setItem('zelda_game_data', JSON.stringify(data));
+          const data = {
+              games: gameDataList,
+              dailySchedules: dailySchedules,
+              dailyGoals: dailyGoals,
+              history: loginHistory
+          };
+          localStorage.setItem('zelda_game_data', JSON.stringify(data));
       }
 
       function updateHeaderDate() {
-        const dateObj = new Date(currentDateStr);
-        const m = dateObj.getMonth() + 1;
-        const d = dateObj.getDate();
-        const header = document.getElementById('blackboardHeader');
-        if (currentBoardMode === 'schedule') {
-          header.textContent = `🏫 ${m}月${d}日の作戦時間割`;
-        } else {
-          header.textContent = `🎯 ${m}月${d}日の簡易目標`;
-        }
+          const dateObj = new Date(currentDateStr);
+          const m = dateObj.getMonth() + 1;
+          const d = dateObj.getDate();
+          const header = document.getElementById('blackboardHeader');
+          if (currentBoardMode === 'schedule') {
+              header.textContent = `🏫 ${m}月${d}日の作戦時間割`;
+          } else {
+              header.textContent = `🎯 ${m}月${d}日の簡易目標`;
+          }
       }
 
       function toggleBoardMode() {
-        playSound('switch');
-        const scheduleList = document.getElementById('scheduleList');
-        const goalContainer = document.getElementById('simpleGoalContainer');
+          playSound('switch');
+          const scheduleList = document.getElementById('scheduleList');
+          const goalContainer = document.getElementById('simpleGoalContainer');
 
-        if (currentBoardMode === 'schedule') {
-          currentBoardMode = 'goal';
-          scheduleList.style.display = 'none';
-          goalContainer.classList.add('active');
-          renderSimpleGoals();
-        } else {
-          currentBoardMode = 'schedule';
-          goalContainer.classList.remove('active');
-          scheduleList.style.display = 'block';
-        }
-        updateHeaderDate();
+          if (currentBoardMode === 'schedule') {
+              currentBoardMode = 'goal';
+              scheduleList.style.display = 'none';
+              goalContainer.classList.add('active');
+              renderSimpleGoals();
+          } else {
+              currentBoardMode = 'schedule';
+              goalContainer.classList.remove('active');
+              scheduleList.style.display = 'block';
+          }
+          updateHeaderDate();
       }
 
       function addSimpleGoal() {
-        if (simpleGoalsData.length >= 5) {
-          playSound('error');
-          document.getElementById('statusLog').textContent = "⚠️ 目標は最大5つまでです！";
-          return;
-        }
-        playSound('click');
-        simpleGoalsData.push({ title: '', h: 0, m: 30, detail: '' });
-        saveLocalBackup();
-        renderSimpleGoals();
+          if (simpleGoalsData.length >= 5) {
+              playSound('error');
+              document.getElementById('statusLog').textContent = "⚠️ 目標は最大5つまでです！";
+              return;
+          }
+          playSound('click');
+          simpleGoalsData.push({ title: '', h: 0, m: 30, detail: '' });
+          saveLocalBackup();
+          renderSimpleGoals();
       }
 
       function updateGoal(idx, field, element) {
-        let val = element.value;
-        if (field === 'h' || field === 'm') val = parseInt(val) || 0;
-        simpleGoalsData[idx][field] = val;
-        element.setAttribute('value', val);
-        saveLocalBackup();
+          let val = element.value;
+          if (field === 'h' || field === 'm') val = parseInt(val) || 0;
+          simpleGoalsData[idx][field] = val;
+          element.setAttribute('value', val);
+          saveLocalBackup();
       }
 
       function selectGoalPreset(idx, titleVal) {
-        if(!titleVal) return;
-        playSound('switch');
-        simpleGoalsData[idx].title = titleVal;
-        saveLocalBackup();
-        renderSimpleGoals();
+          if(!titleVal) return;
+          playSound('switch');
+          simpleGoalsData[idx].title = titleVal;
+          saveLocalBackup();
+          renderSimpleGoals();
       }
 
       function removeSimpleGoal(idx) {
-        playSound('switch');
-        simpleGoalsData.splice(idx, 1);
-        saveLocalBackup();
-        renderSimpleGoals();
+          playSound('switch');
+          simpleGoalsData.splice(idx, 1);
+          saveLocalBackup();
+          renderSimpleGoals();
       }
 
       function renderSimpleGoals() {
-        const listEl = document.getElementById('simpleGoalList');
-        const addBtn = document.getElementById('addSimpleGoalBtn');
-        listEl.innerHTML = '';
+          const listEl = document.getElementById('simpleGoalList');
+          const addBtn = document.getElementById('addSimpleGoalBtn');
+          listEl.innerHTML = '';
 
-        const placeholders = [
-          { t: "例: パンプキン戦士のコンボ考案", d: "例: スケルトン軍団を相手にした立ち回りを中心に" },
-          { t: "例: パルクールアクションの練習", d: "例: 都市部の屋上を想定して動きを確認" },
-          { t: "例: スケルトンキング討伐戦", d: "例: 敵の第二形態の攻撃パターンを覚える" },
-          { t: "例: 変身シーンの構想まとめ", d: "例: 仮面ライダーJのような巨大化を取り入れるか？" },
-          { t: "例: 剣劇バトルのスクリプト化", d: "例: 鍔迫り合いの描写を詳細に書く" }
-        ];
+          const placeholders = [
+              { t: "例: パンプキン戦士のコンボ考案", d: "例: スケルトン軍団を相手にした立ち回りを中心に" },
+              { t: "例: パルクールアクションの練習", d: "例: 都市部の屋上を想定して動きを確認" },
+              { t: "例: スケルトンキング討伐戦", d: "例: 敵の第二形態の攻撃パターンを覚える" },
+              { t: "例: 変身シーンの構想まとめ", d: "例: 仮面ライダーJのような巨大化を取り入れるか？" },
+              { t: "例: 剣劇バトルのスクリプト化", d: "例: 鍔迫り合いの描写を詳細に書く" }
+          ];
 
-        if (simpleGoalsData.length === 0) {
-          listEl.innerHTML = '<div class="empty-text" style="flex:1; display:flex; align-items:center; justify-content:center;">（目標がありません。「＋ 新しい目標を追加」を押してください）</div>';
-        }
+          if (simpleGoalsData.length === 0) {
+              listEl.innerHTML = '<div class="empty-text" style="flex:1; display:flex; align-items:center; justify-content:center;">（目標がありません。「＋ 新しい目標を追加」を押してください）</div>';
+          }
 
-        let gameOptions = '<option value="">🎮 所持ゲームから選択...</option>';
-        gameDataList.forEach(g => {
-          gameOptions += `<option value="${g.title}">${g.title}</option>`;
-        });
+          let gameOptions = '<option value="">🎮 所持ゲームから選択...</option>';
+          gameDataList.forEach(g => {
+              gameOptions += `<option value="${g.title}">${g.title}</option>`;
+          });
 
-        simpleGoalsData.forEach((goal, idx) => {
-          const ph = placeholders[idx % placeholders.length];
-          const card = document.createElement('div');
-          card.className = 'goal-card';
-          card.innerHTML = `
-            <div class="goal-main-row">
-              <input type="text" class="goal-title-input" placeholder="${ph.t}" value="${goal.title}" onchange="updateGoal(${idx}, 'title', this)" oninput="this.setAttribute('value', this.value); updateGoal(${idx}, 'title', this)">
-              ${gameDataList.length > 0 ? `<select class="goal-preset-select" onchange="selectGoalPreset(${idx}, this.value)">${gameOptions}</select>` : ''}
-              <div class="goal-time-box">
-                <input type="number" class="goal-time-input" min="0" max="23" value="${goal.h}" onchange="updateGoal(${idx}, 'h', this)" oninput="this.setAttribute('value', this.value); updateGoal(${idx}, 'h', this)"> H
-                <input type="number" class="goal-time-input" min="0" max="59" value="${goal.m}" onchange="updateGoal(${idx}, 'm', this)" oninput="this.setAttribute('value', this.value); updateGoal(${idx}, 'm', this)"> M
-              </div>
-            </div>
-            <input type="text" class="goal-detail-input" placeholder="${ph.d}" value="${goal.detail}" onchange="updateGoal(${idx}, 'detail', this)" oninput="this.setAttribute('value', this.value); updateGoal(${idx}, 'detail', this)">
-            <button class="goal-delete-btn" onclick="removeSimpleGoal(${idx})" title="削除">×</button>
-          `;
-          listEl.appendChild(card);
-        });
+          simpleGoalsData.forEach((goal, idx) => {
+              const ph = placeholders[idx % placeholders.length];
+              const card = document.createElement('div');
+              card.className = 'goal-card';
+              card.innerHTML = `
+                  <div class="goal-main-row">
+                      <input type="text" class="goal-title-input" placeholder="${ph.t}" value="${goal.title}" onchange="updateGoal(${idx}, 'title', this)" oninput="this.setAttribute('value', this.value)">
+                      ${gameDataList.length > 0 ? `<select class="goal-preset-select" onchange="selectGoalPreset(${idx}, this.value)">${gameOptions}</select>` : ''}
+                      <div class="goal-time-box">
+                          <input type="number" class="goal-time-input" min="0" max="23" value="${goal.h}" onchange="updateGoal(${idx}, 'h', this)" oninput="this.setAttribute('value', this.value)"> H
+                          <input type="number" class="goal-time-input" min="0" max="59" value="${goal.m}" onchange="updateGoal(${idx}, 'm', this)" oninput="this.setAttribute('value', this.value)"> M
+                      </div>
+                  </div>
+                  <input type="text" class="goal-detail-input" placeholder="${ph.d}" value="${goal.detail}" onchange="updateGoal(${idx}, 'detail', this)" oninput="this.setAttribute('value', this.value)">
+                  <button class="goal-delete-btn" onclick="removeSimpleGoal(${idx})" title="削除">×</button>
+              `;
+              listEl.appendChild(card);
+          });
 
-        addBtn.style.display = simpleGoalsData.length >= 5 ? 'none' : 'block';
+          addBtn.style.display = simpleGoalsData.length >= 5 ? 'none' : 'block';
       }
 
       function updateDisplay() {
-        updateHeaderDate();
+          updateHeaderDate();
 
-        const listEl = document.getElementById('lineupList');
-        listEl.innerHTML = '';
-        if (gameDataList.length === 0) {
-          listEl.innerHTML = '<div class="empty-text">（ゲームが登録されていません。「NFC読み込み」または手動で追加してください）</div>';
-        } else {
-          gameDataList.forEach((g, idx) => {
-            const totalMins = g.totalMinutes || 0;
-            let timeBadge = totalMins > 0 ? ` (累計${Math.floor(totalMins/60)}h${totalMins%60}m)` : '';
-            const completedClass = g.completed ? 'completed' : '';
-            const li = document.createElement('li');
-            li.className = `zelda-row ${completedClass}`;
-            li.onclick = () => toggleComplete(idx);
-            li.innerHTML = `
-              <div>
-                <div class="zelda-title-text" style="font-weight:bold; color:var(--gold-light);">${g.title}</div>
-                <div style="font-size:0.75rem; color:var(--text-sub);">状態: ${g.completed ? '【クリア/達成】' : '進行中'} ${timeBadge}</div>
-              </div>
-              <span style="color:#b86b6b; cursor:pointer; font-size:0.8rem; padding:5px;" onclick="removeGame(${idx}, event)">[削除]</span>
-            `;
-            listEl.appendChild(li);
-          });
-        }
-
-        const schedEl = document.getElementById('scheduleList');
-        schedEl.innerHTML = '';
-        let currentTotalMinutes = BASE_START_HOUR * 60 + BASE_START_MIN;
-
-        scheduleAssignments.forEach((item, fIdx) => {
-          const startMins = currentTotalMinutes;
-          const durationMins = Math.round(item.duration * 60);
-          const endMins = startMins + durationMins;
-          currentTotalMinutes = endMins;
-
-          const pad = (n) => String(n).padStart(2, '0');
-          const timeStr = `${pad(Math.floor(startMins/60)%24)}:${pad(startMins%60)} - ${pad(Math.floor(endMins/60)%24)}:${pad(endMins%60)}`;
-
-          let gameOptsHtml = `<option value="-2" ${item.gameIndexVal === "-2" ? 'selected' : ''}>🍱 昼食・食事</option><option value="-1" ${item.gameIndexVal === "-1" ? 'selected' : ''}>🍵 休憩・自由時間</option>`;
-          gameDataList.forEach((g, gIdx) => { gameOptsHtml += `<option value="${gIdx}" ${(String(gIdx) === item.gameIndexVal) ? 'selected' : ''}>🎮 ${g.title}</option>`; });
-
-          let durOptsHtml = '';
-          durationOptions.forEach((opt) => { durOptsHtml += `<option value="${opt.value}" ${Math.abs(opt.value - item.duration) < 0.001 ? 'selected' : ''}>${opt.label}</option>`; });
-
-          const li = document.createElement('li');
-          li.className = 'chalk-row';
-          li.innerHTML = `
-            <span class="time-badge">${timeStr}</span>
-            <div class="chalk-controls">
-              <select class="chalk-select game-select" onchange="changeScheduleGame(${fIdx}, this.value)">${gameOptsHtml}</select>
-              <select class="chalk-select" onchange="changeScheduleDuration(${fIdx}, this.value)">${durOptsHtml}</select>
-            </div>
-          `;
-          schedEl.appendChild(li);
-        });
-
-        if (currentBoardMode === 'goal') {
-          renderSimpleGoals();
-        }
-
-        // スタンプカード（7日サイクル）表示更新
-        const totalCount = loginHistory.length;
-        const currentCycleCount = totalCount === 0 ? 0 : ((totalCount - 1) % 7) + 1;
-        const cycleStartIndex = totalCount - currentCycleCount;
-
-        for (let i = 0; i < 6; i++) {
-          const slot = document.getElementById(`slot-${i}`);
-          if (i < currentCycleCount) {
-            const historyItem = loginHistory[cycleStartIndex + i];
-            slot.classList.add('active');
-            slot.textContent = historyItem ? historyItem.stamp : '💮';
+          const listEl = document.getElementById('lineupList');
+          listEl.innerHTML = '';
+          if (gameDataList.length === 0) {
+              listEl.innerHTML = '<div class="empty-text">（ゲームが登録されていません。「NFC読み込み」または手動で追加してください）</div>';
           } else {
-            slot.classList.remove('active');
-            slot.textContent = i + 1;
+              gameDataList.forEach((g, idx) => {
+                  const totalMins = g.totalMinutes || 0;
+                  let timeBadge = totalMins > 0 ? ` (累計${Math.floor(totalMins/60)}h${totalMins%60}m)` : '';
+                  const completedClass = g.completed ? 'completed' : '';
+                  const li = document.createElement('li');
+                  li.className = `zelda-row ${completedClass}`;
+                  li.onclick = () => toggleComplete(idx);
+                  li.innerHTML = `
+                      <div>
+                          <div class="zelda-title-text" style="font-weight:bold; color:var(--gold-light);">${g.title}</div>
+                          <div style="font-size:0.75rem; color:var(--text-sub);">状態: ${g.completed ? '【クリア/達成】' : '進行中'} ${timeBadge}</div>
+                      </div>
+                      <span style="color:#b86b6b; cursor:pointer; font-size:0.8rem; padding:5px;" onclick="removeGame(${idx}, event)">[削除]</span>
+                  `;
+                  listEl.appendChild(li);
+              });
           }
-        }
 
-        const bonusSlot = document.getElementById('slot-6');
-        if (currentCycleCount === 7) {
-          const historyItem = loginHistory[cycleStartIndex + 6];
-          bonusSlot.classList.add('active');
-          bonusSlot.textContent = historyItem ? historyItem.stamp : '🪎';
-        } else {
-          bonusSlot.classList.remove('active');
-          bonusSlot.textContent = '🪎';
-        }
+          const schedEl = document.getElementById('scheduleList');
+          schedEl.innerHTML = '';
+          let currentTotalMinutes = BASE_START_HOUR * 60 + BASE_START_MIN;
+
+          scheduleAssignments.forEach((item, fIdx) => {
+              const startMins = currentTotalMinutes;
+              const durationMins = Math.round(item.duration * 60);
+              const endMins = startMins + durationMins;
+              currentTotalMinutes = endMins;
+
+              const pad = (n) => String(n).padStart(2, '0');
+              const timeStr = `${pad(Math.floor(startMins/60)%24)}:${pad(startMins%60)} - ${pad(Math.floor(endMins/60)%24)}:${pad(endMins%60)}`;
+
+              let gameOptsHtml = `<option value="-2" ${item.gameIndexVal === "-2" ? 'selected' : ''}>🍱 昼食・食事</option><option value="-1" ${item.gameIndexVal === "-1" ? 'selected' : ''}>🍵 休憩・自由時間</option>`;
+              gameDataList.forEach((g, gIdx) => { gameOptsHtml += `<option value="${gIdx}" ${(String(gIdx) === item.gameIndexVal) ? 'selected' : ''}>🎮 ${g.title}</option>`; });
+
+              let durOptsHtml = '';
+              durationOptions.forEach((opt) => { durOptsHtml += `<option value="${opt.value}" ${Math.abs(opt.value - item.duration) < 0.001 ? 'selected' : ''}>${opt.label}</option>`; });
+
+              const li = document.createElement('li');
+              li.className = 'chalk-row';
+              li.innerHTML = `
+                  <span class="time-badge">${timeStr}</span>
+                  <div class="chalk-controls">
+                      <select class="chalk-select game-select" onchange="changeScheduleGame(${fIdx}, this.value)">${gameOptsHtml}</select>
+                      <select class="chalk-select" onchange="changeScheduleDuration(${fIdx}, this.value)">${durOptsHtml}</select>
+                  </div>
+              `;
+              schedEl.appendChild(li);
+          });
+
+          if (currentBoardMode === 'goal') {
+              renderSimpleGoals();
+          }
+
+          /* スタンプカードの7日ループ・更新処理の修正 */
+          const totalCount = loginHistory.length;
+          const cyclePos = totalCount % 7;
+          const isFullCycle = totalCount > 0 && cyclePos === 0;
+          const activeCount = isFullCycle ? 7 : cyclePos;
+          const startIndex = isFullCycle ? totalCount - 7 : totalCount - cyclePos;
+
+          for (let i = 0; i < 6; i++) {
+              const slot = document.getElementById(`slot-${i}`);
+              if (i < activeCount) {
+                  const item = loginHistory[startIndex + i];
+                  const symbol = item ? (item.stamp || item.s) : null;
+                  slot.classList.add('active');
+                  slot.textContent = symbol || (i + 1);
+              } else {
+                  slot.classList.remove('active');
+                  slot.textContent = i + 1;
+              }
+          }
+
+          const bonusSlot = document.getElementById('slot-6');
+          if (isFullCycle) {
+              bonusSlot.classList.add('active');
+              bonusSlot.textContent = '🪎';
+          } else {
+              bonusSlot.classList.remove('active');
+              bonusSlot.textContent = '🪎';
+          }
       }
 
       function exportScheduleJson() {
-        playSound('click');
-        const exportData = JSON.stringify(dailySchedules, null, 2);
-        const blob = new Blob([exportData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `冒険カレンダー作戦書_${new Date().toISOString().slice(0,10)}.json`;
-        link.click();
-        URL.revokeObjectURL(url);
-        playSound('success');
-        document.getElementById('statusLog').textContent = "📤 カレンダーの作戦データをJSONで保存しました！";
+          playSound('click');
+          const exportData = JSON.stringify(dailySchedules, null, 2);
+          const blob = new Blob([exportData], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `冒険カレンダー作戦書_${new Date().toISOString().slice(0,10)}.json`;
+          link.click();
+          URL.revokeObjectURL(url);
+          playSound('success');
+          document.getElementById('statusLog').textContent = "📤 カレンダーの作戦データをJSONで保存しました！";
       }
 
       function importScheduleJson(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          try {
-            const data = JSON.parse(e.target.result);
-            dailySchedules = Object.assign(dailySchedules, data);
-            onDateChange();
-            playSound('success');
-            document.getElementById('statusLog').textContent = "📥 カレンダーの作戦データを読み込みました！";
-          } catch(err) {
-            playSound('error');
-            document.getElementById('statusLog').textContent = "⚠️ JSONファイルの形式が正しくありません";
-            console.error(err);
-          }
-          event.target.value = '';
-        };
-        reader.readAsText(file);
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(e) {
+              try {
+                  const data = JSON.parse(e.target.result);
+                  dailySchedules = Object.assign(dailySchedules, data);
+                  onDateChange();
+                  playSound('success');
+                  document.getElementById('statusLog').textContent = "📥 カレンダーの作戦データを読み込みました！";
+              } catch(err) {
+                  playSound('error');
+                  document.getElementById('statusLog').textContent = "⚠️ JSONファイルの形式が正しくありません";
+                  console.error(err);
+              }
+              event.target.value = '';
+          };
+          reader.readAsText(file);
       }
 
       function initCreditYear() {
-        const yearEl = document.getElementById('creditYear');
-        if (yearEl) {
-          yearEl.textContent = new Date().getFullYear();
-        }
+          const yearEl = document.getElementById('creditYear');
+          if (yearEl) {
+              yearEl.textContent = new Date().getFullYear();
+          }
       }
 
-      // 初期化処理
-      loadTheme();
-      loadLocalBackup();
       initCreditYear();
-      setTimeout(() => checkTodayStamp(), 800);
     </script>
   </body>
 </html>
