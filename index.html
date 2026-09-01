@@ -722,6 +722,24 @@
       }
       .info-content h3 { color: var(--gold); border-bottom: 1px solid var(--panel-border); padding-bottom: 4px; margin-top: 15px; }
       .notice-box { background: rgba(255, 59, 59, 0.15); border: 1px solid #ff3b3b; border-radius: 6px; padding: 10px; margin-top: 10px; color: #ffcccc; }
+
+      /* 最下部のクレジット・著作権表記スタイル */
+      .footer-credits {
+          text-align: center;
+          font-size: 0.72rem;
+          color: var(--text-sub);
+          opacity: 0.65;
+          margin-top: 20px;
+          padding-top: 10px;
+          border-top: 1px dashed rgba(255, 255, 255, 0.12);
+      }
+      .footer-credits a {
+          color: var(--text-sub);
+          text-decoration: underline;
+      }
+      .footer-credits a:hover {
+          color: var(--gold-light);
+      }
     </style>
   </head>
   <body>
@@ -855,6 +873,11 @@
             🧙‍♀️ 魔女の家に行く
           </button>
         </div>
+
+        <!-- 最下部のクレジット・著作権表記 -->
+        <footer class="footer-credits">
+          <p style="margin: 0;">© 冒険の献立表 | Powered by <a href="https://html2canvas.hertzen.com/" target="_blank" rel="noopener">html2canvas</a> (MIT License)</p>
+        </footer>
       </div>
     </div>
 
@@ -1460,7 +1483,8 @@
                                       try {
                                           const textData = decoder.decode(record.data);
                                           let parsed;
-                                          try { parsed = JSON.parse(textData); } catch(e) { parsed = textData.split('\n').map(s => s.trim()).filter(Boolean); }
+                                          try { parsed = JSON.parse(textData); } catch(e) { parsed = textData.split('
+').map(s => s.trim()).filter(Boolean); }
 
                                           if (parsed && typeof parsed === 'object' && parsed.games) {
                                               gameDataList = parsed.games.map(g => ({
