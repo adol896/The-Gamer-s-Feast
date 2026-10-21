@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>⚔冒険者の献立⚔ - インベントリ＆作戦黒板</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+GQJx6fVOEIZs3TtHptsky8AKlSxb58NLvP07SWMsXAptM613CZAaQok64Ug==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
         :root {
             --bg-color: #1a1612;
@@ -994,6 +994,21 @@
     </div>
 
     <script>
+        // HTML特殊文字のエスケープ処理 (DOM-based XSS対策)
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return str;
+            return str.replace(/[&<>"']/g, function(match) {
+                const escapeMap = {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                };
+                return escapeMap[match];
+            });
+        }
+
         let audioCtx;
 
         function initAudio() {
@@ -1184,7 +1199,7 @@
             initDefaultSchedule();
             updateDisplay();
             saveLocalBackup();
-            document.getElementById('statusLog').textContent = `✅ 「${title}」を追加しました！`;
+            document.getElementById('statusLog').textContent = `✅ 「${escapeHTML(title)}」を追加しました！`;
             inputEl.value = '';
         }
 
@@ -1205,7 +1220,7 @@
                 const title = e.results[0][0].transcript;
                 gameDataList.push({ title: title, playCount: 0, totalMinutes: 0, completed: false });
                 initDefaultSchedule(); updateDisplay(); saveLocalBackup();
-                statusEl.textContent = `✅ 「${title}」を追加しました！`;
+                statusEl.textContent = `✅ 「${escapeHTML(title)}」を追加しました！`;
             };
             recognition.onend = () => { isListening = false; micBtn.classList.remove('listening'); micBtn.textContent = "🎤 音声入力"; };
             recognition.start();
@@ -1255,9 +1270,9 @@
                 g.totalMinutes = (g.totalMinutes || 0) + assignedMins;
                 g.playCount = (g.playCount || 0) + 1;
                 const modeName = currentBoardMode === 'schedule' ? '時間割' : '簡易目標';
-                document.getElementById('statusLog').textContent = `⚔️ 「${g.title}」の達成！（${modeName}より +${assignedMins}分記録）`;
+                document.getElementById('statusLog').textContent = `⚔️ 「${escapeHTML(g.title)}」の達成！（${modeName}より +${assignedMins}分記録）`;
             } else {
-                document.getElementById('statusLog').textContent = `🔄 「${g.title}」を未完了に戻しました`;
+                document.getElementById('statusLog').textContent = `🔄 「${escapeHTML(g.title)}」を未完了に戻しました`;
             }
             updateDisplay(); saveLocalBackup();
         }
@@ -1468,14 +1483,14 @@
             gameDataList.forEach(g => {
                 const h = Math.floor((g.totalMinutes||0) / 60), m = (g.totalMinutes||0) % 60;
                 let ts = (h>0?`${h}時間`:'') + (m>0||h===0?`${m}分`:'');
-                gameListEl.innerHTML += `<li><span style="font-weight:bold; color:var(--gold-light);">${g.title}</span><span>${ts}</span></li>`;
+                gameListEl.innerHTML += `<li><span style="font-weight:bold; color:var(--gold-light);">${escapeHTML(g.title)}</span><span>${ts}</span></li>`;
             });
 
             const historyListEl = document.getElementById('historyLogList');
             historyListEl.innerHTML = loginHistory.length === 0 ? '<div class="empty-text">（記録なし）</div>' : '';
             [...loginHistory].reverse().forEach(item => {
                 const li = document.createElement('li'); li.className = 'history-item';
-                li.innerHTML = `<span>📅 ${item.date||item.d||''}</span><span style="color:var(--gold-light);">獲得: ${item.stamp||item.s||''}</span>`;
+                li.innerHTML = `<span>📅 ${escapeHTML(item.date||item.d||'')}</span><span style="color:var(--gold-light);">獲得: ${escapeHTML(item.stamp||item.s||'')}</span>`;
                 historyListEl.appendChild(li);
             });
             document.getElementById('certificateModal').classList.add('open');
@@ -1494,7 +1509,7 @@
             if (idx >= 0) { loginHistory[idx].stamp = stampSymbol; loginHistory[idx].date = today; }
             else { loginHistory.push({ date: today, stamp: stampSymbol }); }
             closeStampModal(); updateDisplay(); saveLocalBackup();
-            document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${stampSymbol} 】を記録！`;
+            document.getElementById('statusLog').textContent = `🎉 本日のスタンプ【 ${escapeHTML(stampSymbol)} 】を記録！`;
         }
 
         function updateHeaderDate() {
@@ -1542,21 +1557,21 @@
             ];
             if (simpleGoalsData.length === 0) { listEl.innerHTML = '<div class="empty-text" style="flex:1; display:flex; align-items:center; justify-content:center;">（目標なし。「＋ 新しい目標を追加」を押してください）</div>'; }
             let gameOptions = '<option value="">🎮 所持ゲームから選択...</option>';
-            gameDataList.forEach(g => { gameOptions += `<option value="${g.title}">${g.title}</option>`; });
+            gameDataList.forEach(g => { gameOptions += `<option value="${escapeHTML(g.title)}">${escapeHTML(g.title)}</option>`; });
 
             simpleGoalsData.forEach((goal, idx) => {
                 const ph = placeholders[idx % placeholders.length];
                 const card = document.createElement('div'); card.className = 'goal-card';
                 card.innerHTML = `
                     <div class="goal-main-row">
-                        <input type="text" class="goal-title-input" placeholder="${ph.t}" value="${goal.title}" onchange="updateGoal(${idx}, 'title', this)" oninput="this.setAttribute('value', this.value)">
+                        <input type="text" class="goal-title-input" placeholder="${ph.t}" value="${escapeHTML(goal.title)}" onchange="updateGoal(${idx}, 'title', this)" oninput="this.setAttribute('value', this.value)">
                         ${gameDataList.length > 0 ? `<select class="goal-preset-select" onchange="selectGoalPreset(${idx}, this.value)">${gameOptions}</select>` : ''}
                         <div class="goal-time-box">
                             <input type="number" class="goal-time-input" min="0" max="23" value="${goal.h}" onchange="updateGoal(${idx}, 'h', this)" oninput="this.setAttribute('value', this.value)"> H
                             <input type="number" class="goal-time-input" min="0" max="59" value="${goal.m}" onchange="updateGoal(${idx}, 'm', this)" oninput="this.setAttribute('value', this.value)"> M
                         </div>
                     </div>
-                    <input type="text" class="goal-detail-input" placeholder="${ph.d}" value="${goal.detail}" onchange="updateGoal(${idx}, 'detail', this)" oninput="this.setAttribute('value', this.value)">
+                    <input type="text" class="goal-detail-input" placeholder="${ph.d}" value="${escapeHTML(goal.detail)}" onchange="updateGoal(${idx}, 'detail', this)" oninput="this.setAttribute('value', this.value)">
                     <button class="goal-delete-btn" onclick="removeSimpleGoal(${idx})" title="削除">×</button>
                 `;
                 listEl.appendChild(card);
@@ -1576,7 +1591,7 @@
                     li.onclick = () => toggleComplete(idx);
                     li.innerHTML = `
                         <div>
-                            <div style="font-weight:bold; color:var(--gold-light); font-size:1.05rem;">${g.title}</div>
+                            <div style="font-weight:bold; color:var(--gold-light); font-size:1.05rem;">${escapeHTML(g.title)}</div>
                             <div style="font-size:0.8rem; color:var(--text-sub); margin-top:2px;">状態: ${g.completed ? '【クリア/達成】' : '進行中'} ${badge}</div>
                         </div>
                         <span style="color:#b86b6b; cursor:pointer; font-size:0.85rem; padding:8px;" onclick="removeGame(${idx}, event)">[削除]</span>
@@ -1594,7 +1609,7 @@
                 const tStr = `${pad(Math.floor(sMins/60)%24)}:${pad(sMins%60)} - ${pad(Math.floor(eMins/60)%24)}:${pad(eMins%60)}`;
 
                 let gHtml = `<option value="-2" ${item.gameIndexVal === "-2" ? 'selected' : ''}>🍱 昼食・食事</option><option value="-1" ${item.gameIndexVal === "-1" ? 'selected' : ''}>🍵 休憩・自由時間</option>`;
-                gameDataList.forEach((g, gIdx) => { gHtml += `<option value="${gIdx}" ${(String(gIdx) === item.gameIndexVal) ? 'selected' : ''}>🎮 ${g.title}</option>`; });
+                gameDataList.forEach((g, gIdx) => { gHtml += `<option value="${gIdx}" ${(String(gIdx) === item.gameIndexVal) ? 'selected' : ''}>🎮 ${escapeHTML(g.title)}</option>`; });
                 let dHtml = ''; durationOptions.forEach((opt) => { dHtml += `<option value="${opt.value}" ${Math.abs(opt.value - item.duration) < 0.001 ? 'selected' : ''}>${opt.label}</option>`; });
 
                 const li = document.createElement('li'); li.className = 'chalk-row';
